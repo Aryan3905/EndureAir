@@ -126,3 +126,46 @@ This project demonstrates the practical integration of OS and DBMS concepts rath
 ## 📌 Project Purpose
 
 The main goal is to build an educational yet realistic system that demonstrates how **Operating System resource management** and **Database transaction management** can cooperate to create a reliable, concurrent, and crash-resilient booking system.
+
+---
+
+## 👥 Phase-2 Team Member File Division (Team #Nirvana)
+
+| Team Member | Domain | Header File | Source File | Core Responsibilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **Aryan Bhatt** *(Lead)* | **Operating Systems (OS)** | `aryan_os.h` | `aryan_os.cpp` | Banker's Algorithm (Deadlock Avoidance), Multi-resource safety check, Priority Queue with Aging (starvation prevention), Simulated Crash trigger |
+| **Bijendra Rawat** | **Database Systems (DBMS)** | `bijendra_dbms.h` | `bijendra_dbms.cpp` | ACID transactions, Row-level locking on seats, Write-Ahead Logging (WAL `wal.log`), Undo/Redo Crash Recovery engine, Audit reporting |
+| **Yash Yadav** | **Integration & Dashboards** | — | `yash_app.cpp` | System orchestrator, User Dashboard, Admin Dashboard, interactive CLI menu |
+
+---
+
+## 🛠️ How to Compile & Run (C++ Implementation)
+
+### Using the Batch Script:
+Double-click `build.bat` or run:
+```cmd
+build.bat
+```
+
+### Or using g++ in terminal:
+```powershell
+g++ -std=c++17 aryan_os.cpp bijendra_dbms.cpp yash_app.cpp -o endure_air.exe
+.\endure_air.exe
+```
+
+---
+
+## 🧪 Live Evaluation Demo Scenarios
+
+1. **Deadlock Avoidance (Aryan's Module):**
+   * Select Option `[1]` to book with standard parameters -> verified Safe, allocation granted.
+   * Attempt booking with an excessive resource request (e.g. 20 meals or 500kg baggage) -> Banker's algorithm detects unsafe state, blocks immediate allocation, and parks it in Aryan's Priority Queue.
+2. **Aging Mechanism (Aryan's Module):**
+   * Select Option `[2]` or `[4]` -> see how aging points increase waiting priority over time so no request starves.
+3. **Row-Level Seat Locking (Bijendra's Module):**
+   * Booking an already occupied seat immediately triggers a row lock conflict message and prevents double-booking.
+4. **Crash Simulation & WAL (Bijendra + Aryan):**
+   * Select Option `[5]` -> Injects a mid-transaction failure. The process terminates immediately after writing WAL updates but before `COMMIT`.
+5. **Crash Recovery (Bijendra's Module):**
+   * Re-launch `endure_air.exe` and select Option `[6]`.
+   * Bijendra's recovery engine reads `wal.log`, runs the **Analysis Pass**, detects the aborted/in-flight transaction, and runs the **Undo Pass** to restore data consistency!

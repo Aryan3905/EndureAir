@@ -1,0 +1,15 @@
+# Compiled Binaries & Executables
+*.exe
+*.o
+*.obj
+*.out
+
+# Runtime Database & Crash Recovery Logs
+*.log
+wal.log
+
+# IDE & Editor Configuration
+.vscode/
+.idea/
+*.suo
+*.user
