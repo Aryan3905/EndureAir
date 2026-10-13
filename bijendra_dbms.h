@@ -60,7 +60,28 @@ public:
                    const std::string& oldVal = "", 
                    const std::string& newVal = "");
 
+    std::vector<WalEntry> parseLogFile();
     void truncateLog();
+    void displayRawLogs();
+};
+
+// ========================================================
+// Storage Engine: Relational Database & Transaction Engine
+// ========================================================
+class EndureAirDatabase {
+private:
+    DbSeat seats[DB_TOTAL_SEATS];
+    int availableMeals;
+    int availableBaggageKg;
+    std::vector<BookingRecord> bookingsTable;
+    std::mutex dbGlobalMutex;
+
+public:
+    WriteAheadLogger wal;
+
+    EndureAirDatabase(int initialMeals = 15, int initialBaggage = 300);
+    void printSeatMap();
+    bool isSeatBooked(int seatNum);
 };
 
 #endif // BIJENDRA_DBMS_H
