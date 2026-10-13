@@ -5,18 +5,19 @@
 
 const std::string RESOURCE_NAMES[NUM_RESOURCES] = {"Seats", "Meals", "Baggage(kg)"};
 
-// Constructor
+// Initialize system with total available resource vectors
 BankersAlgorithm::BankersAlgorithm(const std::vector<int>& initialResources) {
     available = initialResources;
 }
 
+// Register user maximum claim vector (Max matrix initialization)
 void BankersAlgorithm::registerUserClaim(int userId, const std::vector<int>& maxResources) {
     std::lock_guard<std::mutex> lock(baMutex);
     maxClaim[userId] = maxResources;
     allocation[userId] = std::vector<int>(NUM_RESOURCES, 0);
 }
 
-// Banker's Safety Algorithm
+// Banker's Safety Algorithm: Verifies if system can finish all processes without deadlock
 bool BankersAlgorithm::isStateSafe(const std::vector<int>& workAvail,
                                    const std::map<int, std::vector<int>>& currentAlloc,
                                    const std::map<int, std::vector<int>>& claims,
@@ -41,6 +42,7 @@ bool BankersAlgorithm::isStateSafe(const std::vector<int>& workAvail,
                 bool canSatisfy = true;
                 const auto& claimVec = claims.at(uid);
 
+                // Check: Need_i <= Work
                 for (int j = 0; j < NUM_RESOURCES; ++j) {
                     int need = claimVec[j] - allocVec[j];
                     if (need > work[j]) {
@@ -50,6 +52,7 @@ bool BankersAlgorithm::isStateSafe(const std::vector<int>& workAvail,
                 }
 
                 if (canSatisfy) {
+                    // Work = Work + Allocation_i
                     for (int j = 0; j < NUM_RESOURCES; ++j) {
                         work[j] += allocVec[j];
                     }
@@ -65,39 +68,38 @@ bool BankersAlgorithm::isStateSafe(const std::vector<int>& workAvail,
             return false; // Deadlock or unsafe state detected!
         }
     }
-    return true;
+    return true; // System is in a safe state!
 }
 
-// Resource-Request Algorithm
+// Resource-Request Algorithm: 4-Step Validation & Trial Allocation
 bool BankersAlgorithm::requestResources(int userId, const int request[NUM_RESOURCES], std::vector<int>& outSafeSeq) {
     std::lock_guard<std::mutex> lock(baMutex);
 
-    // Auto-register user with default upper bounds if not already present
     if (maxClaim.find(userId) == maxClaim.end()) {
         maxClaim[userId] = {request[0], request[1], request[2]};
         allocation[userId] = {0, 0, 0};
     }
 
-    // Step 1: Request <= Need Check
+    // Step 1: Check Request <= Need
     for (int j = 0; j < NUM_RESOURCES; ++j) {
         int need = maxClaim[userId][j] - allocation[userId][j];
         if (request[j] > need) {
-            std::cout << "[Aryan OS - Banker's] User #" << userId 
-                      << " exceeded maximum declared claim for " << RESOURCE_NAMES[j] << "!\n";
+            std::cout << "[Deadlock Prevention] User #" << userId 
+                      << " exceeded declared claim for " << RESOURCE_NAMES[j] << "!\n";
             return false;
         }
     }
 
-    // Step 2: Request <= Available Check
+    // Step 2: Check Request <= Available
     for (int j = 0; j < NUM_RESOURCES; ++j) {
         if (request[j] > available[j]) {
-            std::cout << "[Aryan OS - Banker's] Insufficient " << RESOURCE_NAMES[j] 
+            std::cout << "[Deadlock Prevention] Insufficient immediate " << RESOURCE_NAMES[j] 
                       << " (Requested: " << request[j] << ", Available: " << available[j] << ")\n";
             return false;
         }
     }
 
-    // Step 3: Trial Allocation (pretend to allocate)
+    // Step 3: Trial Allocation (Simulate state transition)
     std::vector<int> trialAvailable = available;
     std::map<int, std::vector<int>> trialAlloc = allocation;
     std::map<int, std::vector<int>> trialMax = maxClaim;
@@ -109,16 +111,17 @@ bool BankersAlgorithm::requestResources(int userId, const int request[NUM_RESOUR
 
     // Step 4: Run Safety Algorithm on trial state
     if (isStateSafe(trialAvailable, trialAlloc, trialMax, outSafeSeq)) {
-        // Safe state found! Commit allocation
+        // Safe state preserved! Apply changes permanently
         available = trialAvailable;
         allocation = trialAlloc;
         return true;
     }
 
-    // Unsafe state! Request denied
+    // Unsafe state! Deny allocation to prevent potential deadlock
     return false;
 }
 
+// Release allocated resources back into available pool on rollback/cancel
 void BankersAlgorithm::releaseResources(int userId, const int release[NUM_RESOURCES]) {
     std::lock_guard<std::mutex> lock(baMutex);
     if (allocation.find(userId) != allocation.end()) {
@@ -129,19 +132,25 @@ void BankersAlgorithm::releaseResources(int userId, const int release[NUM_RESOUR
     }
 }
 
+std::vector<int> BankersAlgorithm::getAvailableResources() {
+    std::lock_guard<std::mutex> lock(baMutex);
+    return available;
+}
+
+// Formatted allocation matrix visualization for admin dashboard
 void BankersAlgorithm::printMatrix() {
     std::lock_guard<std::mutex> lock(baMutex);
-    std::cout << "\n================ [ARYAN OS] BANKER'S ALGORITHM MATRICES ================\n";
-    std::cout << "Available Resources: ";
+    std::cout << "\n================ DEADLOCK MONITOR: BANKER'S ALGORITHM MATRICES ================\n";
+    std::cout << "Available Resource Vector: ";
     for (int j = 0; j < NUM_RESOURCES; ++j) {
         std::cout << RESOURCE_NAMES[j] << ": " << available[j] << "   ";
     }
-    std::cout << "\n------------------------------------------------------------------------\n";
+    std::cout << "\n------------------------------------------------------------------------------\n";
     std::cout << std::left << std::setw(10) << "User ID"
               << std::setw(20) << "Allocated (S,M,B)"
               << std::setw(20) << "Max Claim (S,M,B)"
               << std::setw(20) << "Need (S,M,B)" << "\n";
-    std::cout << "------------------------------------------------------------------------\n";
+    std::cout << "------------------------------------------------------------------------------\n";
 
     for (const auto& pair : allocation) {
         int uid = pair.first;
@@ -156,16 +165,11 @@ void BankersAlgorithm::printMatrix() {
                   << std::setw(20) << maxStr
                   << std::setw(20) << needStr << "\n";
     }
-    std::cout << "========================================================================\n\n";
-}
-
-std::vector<int> BankersAlgorithm::getAvailableResources() {
-    std::lock_guard<std::mutex> lock(baMutex);
-    return available;
+    std::cout << "==============================================================================\n\n";
 }
 
 // ========================================================
-// Priority Queue with Aging Implementation
+// Priority Queue Implementation with Dynamic Aging
 // ========================================================
 void PriorityQueueWithAging::enqueueRequest(const BookingRequest& req) {
     std::lock_guard<std::mutex> lock(queueMutex);
@@ -173,13 +177,14 @@ void PriorityQueueWithAging::enqueueRequest(const BookingRequest& req) {
     newReq.agingBonus = 0;
     newReq.arrivalTime = std::chrono::steady_clock::now();
     waitingQueue.push_back(newReq);
-    std::cout << "[Aryan OS - Scheduler] Request #" << req.requestId << " parked in Priority Queue. (Priority: " 
-              << req.priority << ")\n";
+    std::cout << "[Process Scheduler] Request #" << req.requestId 
+              << " parked in Waiting Priority Queue. (Priority: " << req.priority << ")\n";
 }
 
+// Dynamic aging: boosts effective priority over time to guarantee starvation freedom
 void PriorityQueueWithAging::applyAgingStep() {
     for (auto& req : waitingQueue) {
-        req.agingBonus += 1; // Increment aging bonus to prevent indefinite starvation
+        req.agingBonus += 1;
     }
 }
 
@@ -204,9 +209,9 @@ BookingRequest PriorityQueueWithAging::popHighestPriority() {
 
 void PriorityQueueWithAging::printQueueStatus() {
     std::lock_guard<std::mutex> lock(queueMutex);
-    std::cout << "\n================ [ARYAN OS] WAITING QUEUE (WITH AGING) ================\n";
+    std::cout << "\n================ WAITING QUEUE MONITOR (WITH AGING METRICS) ================\n";
     if (waitingQueue.empty()) {
-        std::cout << ">> No requests currently waiting.\n";
+        std::cout << ">> No requests currently waiting in queue.\n";
     } else {
         std::cout << std::left << std::setw(8) << "ReqID"
                   << std::setw(14) << "User Name"
@@ -214,7 +219,7 @@ void PriorityQueueWithAging::printQueueStatus() {
                   << std::setw(12) << "Base Prio"
                   << std::setw(12) << "Aging Pts"
                   << std::setw(16) << "Effective Prio\n";
-        std::cout << "-----------------------------------------------------------------------\n";
+        std::cout << "----------------------------------------------------------------------------\n";
         for (const auto& r : waitingQueue) {
             std::cout << std::left << std::setw(8) << r.requestId
                       << std::setw(14) << r.userName
@@ -224,13 +229,16 @@ void PriorityQueueWithAging::printQueueStatus() {
                       << std::setw(16) << r.getEffectivePriority() << "\n";
         }
     }
-    std::cout << "=======================================================================\n\n";
+    std::cout << "============================================================================\n\n";
 }
 
-// Mid-transaction crash simulator
+// Simulated crash injection: instantly terminates process mid-execution
 void triggerSimulatedCrash(int exitCode, const std::string& reason) {
-    std::cout << "\n💥💥💥 [ARYAN OS - SIMULATE CRASH TRIGGERED] 💥💥💥\n";
-    std::cout << "Reason: " << reason << "\n";
-    std::cout << "Killing active process immediately with code " << exitCode << "...\n";
+    std::cout << "\n============================================================\n";
+    std::cout << "  💥 FAILURE INJECTION: SIMULATED SYSTEM CRASH TRIGGERED    \n";
+    std::cout << "============================================================\n";
+    std::cout << "Diagnostic Reason: " << reason << "\n";
+    std::cout << "Terminating active process immediately with exit code (" << exitCode << ")...\n";
+    std::cout << "============================================================\n";
     exit(exitCode);
 }
