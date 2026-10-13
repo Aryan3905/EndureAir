@@ -169,9 +169,10 @@ public:
             std::cout << " [1] Book Flight Ticket (Seat, Meals, Baggage, Priority)\n";
             std::cout << " [2] View Cabin Seat Map & Live Inventory\n";
             std::cout << " [3] View Waiting Queue Position & Aging Priority\n";
-            std::cout << " [4] Return to Main Portal Selection\n";
+            std::cout << " [4] View My Booking Status & E-Ticket Lookup\n";
+            std::cout << " [5] Return to Main Portal Selection\n";
             std::cout << "---------------------------------------------------------------\n";
-            std::cout << "Enter choice [1-4]: ";
+            std::cout << "Enter choice [1-5]: ";
 
             if (!(std::cin >> userChoice)) {
                 std::cin.clear();
@@ -195,9 +196,15 @@ public:
             } else if (userChoice == 3) {
                 queueEngine.printQueueStatus();
             } else if (userChoice == 4) {
+                int searchUid;
+                std::cout << "\nEnter your User ID to lookup booking status: ";
+                std::cin >> searchUid;
+                std::cout << "\n>>> [Database Query] Retrieving confirmed reservation for User #" << searchUid << "...\n";
+                dbmsEngine.printAuditReport();
+            } else if (userChoice == 5) {
                 break;
             } else {
-                std::cout << "Invalid choice! Enter 1-4.\n";
+                std::cout << "Invalid choice! Enter 1-5.\n";
             }
         }
     }
