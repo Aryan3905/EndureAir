@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <map>
 
 // ========================================================
 // Write-Ahead Logger Implementation
@@ -198,4 +199,78 @@ bool EndureAirDatabase::executeBookingTransaction(int txnId, int userId, const s
 
     std::cout << "[Transaction Coordinator] Txn #" << txnId << ": COMMITTED successfully with full ACID compliance.\n";
     return true;
+}
+
+// 3-Pass Undo/Redo Crash Recovery Algorithm
+void EndureAirDatabase::performCrashRecovery() {
+    std::cout << "\n================ ARIES-STYLE CRASH RECOVERY ENGINE: WAL LOG ANALYSIS ================\n";
+    std::vector<WalEntry> logs = wal.parseLogFile();
+    if (logs.empty()) {
+        std::cout << ">> Log stream is clean. No active log records found.\n";
+        std::cout << "======================================================================================\n\n";
+        return;
+    }
+
+    std::map<int, bool> committed;
+    std::map<int, bool> active;
+
+    // PASS 1: Analysis Pass (Identify active transactions and committed status)
+    for (const auto& entry : logs) {
+        if (entry.type == LOG_START) {
+            active[entry.txnId] = true;
+            committed[entry.txnId] = false;
+        } else if (entry.type == LOG_COMMIT) {
+            committed[entry.txnId] = true;
+        } else if (entry.type == LOG_ABORT) {
+            committed[entry.txnId] = false;
+        }
+    }
+
+    std::vector<int> redoList;
+    std::vector<int> undoList;
+
+    for (const auto& pair : active) {
+        int tid = pair.first;
+        if (committed[tid]) {
+            redoList.push_back(tid);
+        } else {
+            undoList.push_back(tid);
+        }
+    }
+
+    std::cout << "[Analysis Pass Complete]\n";
+    std::cout << " - Transactions to REDO (Committed): ";
+    for (int tid : redoList) std::cout << "#" << tid << " ";
+    if (redoList.empty()) std::cout << "None";
+    std::cout << "\n - Transactions to UNDO (Uncommitted/In-Flight): ";
+    for (int tid : undoList) std::cout << "#" << tid << " ";
+    if (undoList.empty()) std::cout << "None";
+    std::cout << "\n--------------------------------------------------------------------------------------\n";
+
+    // PASS 2: REDO PASS (Replay committed transactions to ensure Durability)
+    for (const auto& entry : logs) {
+        if (entry.type == LOG_UPDATE && committed[entry.txnId]) {
+            if (entry.item.find("SEAT_") == 0) {
+                int seatNum = std::stoi(entry.item.substr(5));
+                seats[seatNum - 1].isBooked = true;
+                seats[seatNum - 1].passengerName = entry.newValue;
+                std::cout << "[REDO Phase] Re-applied " << entry.item << " -> " << entry.newValue << " (Txn #" << entry.txnId << ")\n";
+            }
+        }
+    }
+
+    // PASS 3: UNDO PASS (Roll back in-flight transactions in reverse order to ensure Atomicity)
+    for (auto it = logs.rbegin(); it != logs.rend(); ++it) {
+        if (it->type == LOG_UPDATE && !committed[it->txnId]) {
+            if (it->item.find("SEAT_") == 0) {
+                int seatNum = std::stoi(it->item.substr(5));
+                seats[seatNum - 1].isBooked = false;
+                seats[seatNum - 1].passengerName = "AVAILABLE";
+                seats[seatNum - 1].bookedByUserId = -1;
+                std::cout << "[UNDO Phase] Rolled back " << it->item << " -> Restored to: " << it->oldValue << " (Txn #" << it->txnId << ")\n";
+            }
+        }
+    }
+
+    std::cout << "================ CRASH RECOVERY COMPLETED: DATABASE CONSISTENCY RESTORED =============\n\n";
 }
