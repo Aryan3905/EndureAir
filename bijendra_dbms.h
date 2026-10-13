@@ -87,6 +87,9 @@ public:
     bool executeBookingTransaction(int txnId, int userId, const std::string& userName,
                                    int seatNum, int meals, int baggageKg,
                                    int crashStage);
+
+    // 3-Pass Undo/Redo Crash Recovery Engine
+    void performCrashRecovery();
 };
 
 #endif // BIJENDRA_DBMS_H
