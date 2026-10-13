@@ -303,3 +303,39 @@ void EndureAirDatabase::printAuditReport() {
     }
     std::cout << "===================================================================================\n\n";
 }
+
+// Admin Database Direct Modification Routines
+bool EndureAirDatabase::adminUpdateSeat(int seatNum, bool isBooked, int userId, const std::string& name) {
+    if (seatNum < 1 || seatNum > DB_TOTAL_SEATS) return false;
+    std::lock_guard<std::mutex> lock(seats[seatNum - 1].seatLock);
+    seats[seatNum - 1].isBooked = isBooked;
+    seats[seatNum - 1].bookedByUserId = isBooked ? userId : -1;
+    seats[seatNum - 1].passengerName = isBooked ? name : "AVAILABLE";
+    std::cout << "[Admin DB Override] Seat #" << seatNum << " state updated successfully.\n";
+    return true;
+}
+
+void EndureAirDatabase::adminUpdateInventory(int newMeals, int newBaggageKg) {
+    std::lock_guard<std::mutex> lock(dbGlobalMutex);
+    availableMeals = newMeals;
+    availableBaggageKg = newBaggageKg;
+    std::cout << "[Admin DB Override] Inventory updated: Meals = " << availableMeals 
+              << ", Baggage = " << availableBaggageKg << "kg.\n";
+}
+
+bool EndureAirDatabase::adminCancelBooking(int bookingId) {
+    std::lock_guard<std::mutex> lock(dbGlobalMutex);
+    for (auto& b : bookingsTable) {
+        if (b.bookingId == bookingId) {
+            b.status = "ROLLED_BACK";
+            int sNum = b.seatNumber;
+            seats[sNum - 1].isBooked = false;
+            seats[sNum - 1].passengerName = "AVAILABLE";
+            seats[sNum - 1].bookedByUserId = -1;
+            std::cout << "[Admin DB Override] Booking #" << bookingId << " canceled and seat #" << sNum << " released.\n";
+            return true;
+        }
+    }
+    std::cout << "[Admin DB Override] Error: Booking ID #" << bookingId << " not found.\n";
+    return false;
+}

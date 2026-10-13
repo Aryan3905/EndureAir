@@ -93,6 +93,11 @@ public:
 
     // SQL Audit query simulation for committed transactions
     void printAuditReport();
+
+    // Admin Direct Database Modification Methods
+    bool adminUpdateSeat(int seatNum, bool isBooked, int userId, const std::string& name);
+    void adminUpdateInventory(int newMeals, int newBaggageKg);
+    bool adminCancelBooking(int bookingId);
 };
 
 #endif // BIJENDRA_DBMS_H
