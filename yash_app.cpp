@@ -210,6 +210,60 @@ public:
     }
 
     // ========================================================
+    // Direct Database Editor (Admin Data Overrides)
+    // ========================================================
+    void runAdminDatabaseEditor() {
+        int editChoice;
+        while (true) {
+            std::cout << "\n---------------------------------------------------------------\n";
+            std::cout << "          ADMINISTRATIVE DIRECT DATABASE EDITOR (CRUD)         \n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << " [1] Modify / Reassign Seat Record\n";
+            std::cout << " [2] Adjust Inventory Levels (Meals & Baggage)\n";
+            std::cout << " [3] Cancel / Rollback an Existing Booking\n";
+            std::cout << " [4] View Current On-Disk Database State (Snapshot)\n";
+            std::cout << " [5] Return to Administrator Console\n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << "Enter option [1-5]: ";
+
+            if (!(std::cin >> editChoice)) {
+                std::cin.clear();
+                std::cin.ignore(1000, '\n');
+                continue;
+            }
+
+            if (editChoice == 1) {
+                int sNum, uId, stateInt;
+                std::string pName;
+                std::cout << "Enter Seat Number (1-10): "; std::cin >> sNum;
+                std::cout << "Set Status (1 = Booked, 0 = Available): "; std::cin >> stateInt;
+                if (stateInt == 1) {
+                    std::cout << "Enter User ID: "; std::cin >> uId;
+                    std::cout << "Enter Passenger Name: "; std::cin >> pName;
+                    dbmsEngine.adminUpdateSeat(sNum, true, uId, pName);
+                } else {
+                    dbmsEngine.adminUpdateSeat(sNum, false, -1, "AVAILABLE");
+                }
+            } else if (editChoice == 2) {
+                int m, b;
+                std::cout << "Enter New Available Meals: "; std::cin >> m;
+                std::cout << "Enter New Available Baggage Capacity (kg): "; std::cin >> b;
+                dbmsEngine.adminUpdateInventory(m, b);
+            } else if (editChoice == 3) {
+                int bId;
+                std::cout << "Enter Booking ID to cancel/rollback: "; std::cin >> bId;
+                dbmsEngine.adminCancelBooking(bId);
+            } else if (editChoice == 4) {
+                showDirectDatabaseAccess();
+            } else if (editChoice == 5) {
+                break;
+            } else {
+                std::cout << "Invalid choice! Enter 1-5.\n";
+            }
+        }
+    }
+
+    // ========================================================
     // Administrator Portal (Protected System Controls)
     // ========================================================
     void runAdminPortal() {
@@ -224,7 +278,7 @@ public:
             std::cout << " [2] Process Next Request in Waiting Queue (With Aging)\n";
             std::cout << " [3] View Transaction Write-Ahead Log (WAL Dump)\n";
             std::cout << " [4] View SQL Transaction Audit Report\n";
-            std::cout << " [5] Direct Database Inspection (On-Disk Snapshot)\n";
+            std::cout << " [5] Direct Database CRUD Editor (Modify Seats, Inventory, Bookings)\n";
             std::cout << " [6] Simulate Mid-Transaction System Crash\n";
             std::cout << " [7] Run 3-Pass Undo/Redo Crash Recovery Engine\n";
             std::cout << " [8] Reset / Truncate WAL Log File\n";
@@ -247,7 +301,7 @@ public:
             } else if (adminChoice == 4) {
                 dbmsEngine.printAuditReport();
             } else if (adminChoice == 5) {
-                showDirectDatabaseAccess();
+                runAdminDatabaseEditor();
             } else if (adminChoice == 6) {
                 std::cout << "\n[Crash Simulation] Launching test transaction for 'CrashTest' on Seat #4...\n";
                 std::cout << "[Crash Simulation] Process will terminate mid-transaction before COMMIT!\n";
