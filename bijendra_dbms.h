@@ -98,6 +98,9 @@ public:
     bool adminUpdateSeat(int seatNum, bool isBooked, int userId, const std::string& name);
     void adminUpdateInventory(int newMeals, int newBaggageKg);
     bool adminCancelBooking(int bookingId);
+
+    // Real-Time On-Disk Table Snapshot Export
+    void dumpDatabaseToFile(const std::string& filename = "database_state.txt");
 };
 
 #endif // BIJENDRA_DBMS_H

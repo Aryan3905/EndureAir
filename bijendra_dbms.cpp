@@ -110,6 +110,7 @@ EndureAirDatabase::EndureAirDatabase(int initialMeals, int initialBaggage)
         seats[i].bookedByUserId = -1;
         seats[i].passengerName = "AVAILABLE";
     }
+    dumpDatabaseToFile();
 }
 
 void EndureAirDatabase::printSeatMap() {
@@ -198,6 +199,7 @@ bool EndureAirDatabase::executeBookingTransaction(int txnId, int userId, const s
     bookingsTable.push_back(record);
 
     std::cout << "[Transaction Coordinator] Txn #" << txnId << ": COMMITTED successfully with full ACID compliance.\n";
+    dumpDatabaseToFile();
     return true;
 }
 
@@ -272,6 +274,7 @@ void EndureAirDatabase::performCrashRecovery() {
         }
     }
 
+    dumpDatabaseToFile();
     std::cout << "================ CRASH RECOVERY COMPLETED: DATABASE CONSISTENCY RESTORED =============\n\n";
 }
 
@@ -311,6 +314,7 @@ bool EndureAirDatabase::adminUpdateSeat(int seatNum, bool isBooked, int userId, 
     seats[seatNum - 1].isBooked = isBooked;
     seats[seatNum - 1].bookedByUserId = isBooked ? userId : -1;
     seats[seatNum - 1].passengerName = isBooked ? name : "AVAILABLE";
+    dumpDatabaseToFile();
     std::cout << "[Admin DB Override] Seat #" << seatNum << " state updated successfully.\n";
     return true;
 }
@@ -319,6 +323,7 @@ void EndureAirDatabase::adminUpdateInventory(int newMeals, int newBaggageKg) {
     std::lock_guard<std::mutex> lock(dbGlobalMutex);
     availableMeals = newMeals;
     availableBaggageKg = newBaggageKg;
+    dumpDatabaseToFile();
     std::cout << "[Admin DB Override] Inventory updated: Meals = " << availableMeals 
               << ", Baggage = " << availableBaggageKg << "kg.\n";
 }
@@ -332,10 +337,58 @@ bool EndureAirDatabase::adminCancelBooking(int bookingId) {
             seats[sNum - 1].isBooked = false;
             seats[sNum - 1].passengerName = "AVAILABLE";
             seats[sNum - 1].bookedByUserId = -1;
+            dumpDatabaseToFile();
             std::cout << "[Admin DB Override] Booking #" << bookingId << " canceled and seat #" << sNum << " released.\n";
             return true;
         }
     }
     std::cout << "[Admin DB Override] Error: Booking ID #" << bookingId << " not found.\n";
     return false;
+}
+
+// Real-Time On-Disk Table Snapshot Export
+void EndureAirDatabase::dumpDatabaseToFile(const std::string& filename) {
+    std::lock_guard<std::mutex> lock(dbGlobalMutex);
+    std::ofstream out(filename, std::ios::trunc);
+    if (!out.is_open()) return;
+
+    out << "=====================================================================\n";
+    out << "             ENDUREAIR: DIRECT DATABASE SNAPSHOT (DISK DUMP)         \n";
+    out << "=====================================================================\n\n";
+
+    out << "[TABLE: SEATS (CABIN ROWS)]\n";
+    out << std::left << std::setw(10) << "Seat_No" << std::setw(15) << "Status" 
+        << std::setw(12) << "User_ID" << std::setw(20) << "Passenger_Name" << "\n";
+    out << "---------------------------------------------------------------------\n";
+    for (int i = 0; i < DB_TOTAL_SEATS; ++i) {
+        out << std::left << std::setw(10) << seats[i].seatNumber
+            << std::setw(15) << (seats[i].isBooked ? "BOOKED" : "AVAILABLE")
+            << std::setw(12) << (seats[i].isBooked ? std::to_string(seats[i].bookedByUserId) : "-")
+            << std::setw(20) << seats[i].passengerName << "\n";
+    }
+    out << "\n[TABLE: INVENTORY]\n";
+    out << "Available Meals: " << availableMeals << "\n";
+    out << "Available Baggage Allowance: " << availableBaggageKg << " kg\n\n";
+
+    out << "[TABLE: BOOKINGS (ACID COMMITTED TRANSACTIONS)]\n";
+    out << std::left << std::setw(10) << "Book_ID" << std::setw(10) << "Txn_ID"
+        << std::setw(10) << "User_ID" << std::setw(18) << "Passenger"
+        << std::setw(8) << "Seat" << std::setw(8) << "Meals"
+        << std::setw(12) << "Baggage" << std::setw(12) << "Status" << "\n";
+    out << "---------------------------------------------------------------------\n";
+    if (bookingsTable.empty()) {
+        out << ">> No records in Bookings table yet.\n";
+    } else {
+        for (const auto& b : bookingsTable) {
+            out << std::left << std::setw(10) << b.bookingId
+                << std::setw(10) << b.txnId
+                << std::setw(10) << b.userId
+                << std::setw(18) << b.passengerName
+                << std::setw(8) << b.seatNumber
+                << std::setw(8) << b.meals
+                << std::setw(12) << (std::to_string(b.baggageKg) + "kg")
+                << std::setw(12) << b.status << "\n";
+        }
+    }
+    out << "=====================================================================\n";
 }
