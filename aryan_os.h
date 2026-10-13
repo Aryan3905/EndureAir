@@ -7,7 +7,7 @@
 #include <mutex>
 #include <chrono>
 
-// Number and names of managed resources
+// Core system resource types: [0] Seats, [1] Meals, [2] Baggage Allowance (kg)
 constexpr int NUM_RESOURCES = 3;
 extern const std::string RESOURCE_NAMES[NUM_RESOURCES];
 constexpr int TOTAL_SEATS_COUNT = 10;
@@ -29,7 +29,7 @@ struct BookingRequest {
 };
 
 // ========================================================
-// Aryan's Module: Banker's Algorithm (Deadlock Avoidance)
+// Deadlock Avoidance Engine: Banker's Algorithm
 // ========================================================
 class BankersAlgorithm {
 private:
@@ -38,6 +38,7 @@ private:
     std::map<int, std::vector<int>> allocation;
     std::mutex baMutex;
 
+    // Safety Algorithm subroutine
     bool isStateSafe(const std::vector<int>& workAvail,
                      const std::map<int, std::vector<int>>& currentAlloc,
                      const std::map<int, std::vector<int>>& claims,
@@ -45,16 +46,21 @@ private:
 
 public:
     BankersAlgorithm(const std::vector<int>& initialResources);
-
     void registerUserClaim(int userId, const std::vector<int>& maxResources);
+    
+    // Resource-Request Algorithm: validates if immediate allocation is safe
     bool requestResources(int userId, const int request[NUM_RESOURCES], std::vector<int>& outSafeSeq);
+
+    // De-allocates resources on transaction completion or rollback
     void releaseResources(int userId, const int release[NUM_RESOURCES]);
-    void printMatrix();
     std::vector<int> getAvailableResources();
+
+    // Formatted allocation matrix visualization for admin dashboard
+    void printMatrix();
 };
 
 // ========================================================
-// Aryan's Module: Priority Queue with Aging (Scheduling)
+// Request Scheduling Engine: Priority Queue with Aging
 // ========================================================
 class PriorityQueueWithAging {
 private:
@@ -63,13 +69,13 @@ private:
 
 public:
     void enqueueRequest(const BookingRequest& req);
-    void applyAgingStep();
+    void applyAgingStep(); // Prevents process starvation
     bool isEmpty();
     BookingRequest popHighestPriority();
-    void printQueueStatus();
+    void printQueueStatus(); // Formatted monitor display
 };
 
-// Function to simulate sudden crash (SIGKILL/mid-transaction termination)
+// Failure Injection: Mid-transaction crash simulator
 void triggerSimulatedCrash(int exitCode, const std::string& reason);
 
 #endif // ARYAN_OS_H
