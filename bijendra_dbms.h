@@ -82,6 +82,11 @@ public:
     EndureAirDatabase(int initialMeals = 15, int initialBaggage = 300);
     void printSeatMap();
     bool isSeatBooked(int seatNum);
+
+    // Executes ACID transaction with Row-Level Exclusive Locking
+    bool executeBookingTransaction(int txnId, int userId, const std::string& userName,
+                                   int seatNum, int meals, int baggageKg,
+                                   int crashStage);
 };
 
 #endif // BIJENDRA_DBMS_H
