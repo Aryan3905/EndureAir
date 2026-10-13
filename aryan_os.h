@@ -38,6 +38,12 @@ private:
     std::map<int, std::vector<int>> allocation;
     std::mutex baMutex;
 
+    // Safety Algorithm subroutine
+    bool isStateSafe(const std::vector<int>& workAvail,
+                     const std::map<int, std::vector<int>>& currentAlloc,
+                     const std::map<int, std::vector<int>>& claims,
+                     std::vector<int>& outSafeSeq);
+
 public:
     BankersAlgorithm(const std::vector<int>& initialResources);
     void registerUserClaim(int userId, const std::vector<int>& maxResources);
