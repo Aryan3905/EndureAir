@@ -200,3 +200,14 @@ void PriorityQueueWithAging::printQueueStatus() {
     }
     std::cout << "============================================================================\n\n";
 }
+
+// Simulated crash injection: instantly terminates process mid-execution
+void triggerSimulatedCrash(int exitCode, const std::string& reason) {
+    std::cout << "\n============================================================\n";
+    std::cout << "  💥 FAILURE INJECTION: SIMULATED SYSTEM CRASH TRIGGERED    \n";
+    std::cout << "============================================================\n";
+    std::cout << "Diagnostic Reason: " << reason << "\n";
+    std::cout << "Terminating active process immediately with exit code (" << exitCode << ")...\n";
+    std::cout << "============================================================\n";
+    exit(exitCode);
+}

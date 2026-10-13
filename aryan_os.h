@@ -72,4 +72,7 @@ public:
     void printQueueStatus(); // Formatted monitor display
 };
 
+// Failure Injection: Mid-transaction crash simulator
+void triggerSimulatedCrash(int exitCode, const std::string& reason);
+
 #endif // ARYAN_OS_H
