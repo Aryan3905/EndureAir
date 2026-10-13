@@ -69,6 +69,7 @@ public:
     void applyAgingStep(); // Prevents process starvation
     bool isEmpty();
     BookingRequest popHighestPriority();
+    void printQueueStatus(); // Formatted monitor display
 };
 
 #endif // ARYAN_OS_H

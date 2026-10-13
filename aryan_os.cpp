@@ -1,5 +1,6 @@
 #include "aryan_os.h"
 #include <iostream>
+#include <iomanip>
 #include <algorithm>
 
 const std::string RESOURCE_NAMES[NUM_RESOURCES] = {"Seats", "Meals", "Baggage(kg)"};
@@ -173,4 +174,29 @@ BookingRequest PriorityQueueWithAging::popHighestPriority() {
     BookingRequest selected = *bestIt;
     waitingQueue.erase(bestIt);
     return selected;
+}
+
+void PriorityQueueWithAging::printQueueStatus() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    std::cout << "\n================ WAITING QUEUE MONITOR (WITH AGING METRICS) ================\n";
+    if (waitingQueue.empty()) {
+        std::cout << ">> No requests currently waiting in queue.\n";
+    } else {
+        std::cout << std::left << std::setw(8) << "ReqID"
+                  << std::setw(14) << "User Name"
+                  << std::setw(10) << "Seat #"
+                  << std::setw(12) << "Base Prio"
+                  << std::setw(12) << "Aging Pts"
+                  << std::setw(16) << "Effective Prio\n";
+        std::cout << "----------------------------------------------------------------------------\n";
+        for (const auto& r : waitingQueue) {
+            std::cout << std::left << std::setw(8) << r.requestId
+                      << std::setw(14) << r.userName
+                      << std::setw(10) << r.seatNumber
+                      << std::setw(12) << r.priority
+                      << std::setw(12) << r.agingBonus
+                      << std::setw(16) << r.getEffectivePriority() << "\n";
+        }
+    }
+    std::cout << "============================================================================\n\n";
 }
