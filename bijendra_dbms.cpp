@@ -96,3 +96,38 @@ void WriteAheadLogger::displayRawLogs() {
     }
     std::cout << "==============================================================================\n\n";
 }
+
+// ========================================================
+// Database Engine Implementation
+// ========================================================
+EndureAirDatabase::EndureAirDatabase(int initialMeals, int initialBaggage)
+    : availableMeals(initialMeals), availableBaggageKg(initialBaggage), wal("wal.log") {
+    for (int i = 0; i < DB_TOTAL_SEATS; ++i) {
+        seats[i].seatNumber = i + 1;
+        seats[i].isBooked = false;
+        seats[i].bookedByUserId = -1;
+        seats[i].passengerName = "AVAILABLE";
+    }
+}
+
+void EndureAirDatabase::printSeatMap() {
+    std::cout << "\n================ PASSENGER CABIN SEAT MAP & INVENTORY ================\n";
+    for (int i = 0; i < DB_TOTAL_SEATS; ++i) {
+        std::cout << "Seat " << std::setw(2) << seats[i].seatNumber << " : ";
+        if (seats[i].isBooked) {
+            std::cout << "[OCCUPIED] Passenger: " << std::left << std::setw(15) << seats[i].passengerName 
+                      << " (User ID: " << seats[i].bookedByUserId << ")\n";
+        } else {
+            std::cout << "[AVAILABLE]\n";
+        }
+    }
+    std::cout << "----------------------------------------------------------------------\n";
+    std::cout << "Inventory Status: Meals Remaining = " << availableMeals 
+              << " | Baggage Available = " << availableBaggageKg << " kg\n";
+    std::cout << "======================================================================\n\n";
+}
+
+bool EndureAirDatabase::isSeatBooked(int seatNum) {
+    if (seatNum < 1 || seatNum > DB_TOTAL_SEATS) return true;
+    return seats[seatNum - 1].isBooked;
+}
