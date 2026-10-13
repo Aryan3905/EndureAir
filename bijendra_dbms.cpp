@@ -1,4 +1,5 @@
 #include "bijendra_dbms.h"
+#include "aryan_os.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -130,4 +131,71 @@ void EndureAirDatabase::printSeatMap() {
 bool EndureAirDatabase::isSeatBooked(int seatNum) {
     if (seatNum < 1 || seatNum > DB_TOTAL_SEATS) return true;
     return seats[seatNum - 1].isBooked;
+}
+
+// ACID Transaction Execution with Row-Level Locking
+bool EndureAirDatabase::executeBookingTransaction(int txnId, int userId, const std::string& userName,
+                                                  int seatNum, int meals, int baggageKg,
+                                                  int crashStage) {
+    if (seatNum < 1 || seatNum > DB_TOTAL_SEATS) {
+        std::cout << "[Storage Engine] Error: Invalid seat request #" << seatNum << "\n";
+        return false;
+    }
+
+    DbSeat& targetSeat = seats[seatNum - 1];
+
+    // STEP 1: Row-Level Exclusive Lock (Prevents race conditions)
+    std::unique_lock<std::mutex> rowLock(targetSeat.seatLock);
+
+    if (targetSeat.isBooked) {
+        std::cout << "[Concurrency Control] Conflict: Seat #" << seatNum 
+                  << " is ALREADY RESERVED by User #" << targetSeat.bookedByUserId << "!\n";
+        return false;
+    }
+
+    std::cout << "[Transaction Coordinator] Txn #" << txnId << ": Acquired Exclusive Row Lock on Seat #" << seatNum << ".\n";
+
+    // STEP 2: WAL Record: START transaction
+    wal.logRecord(txnId, LOG_START);
+
+    // STEP 3: WAL Record: UPDATE before applying memory modifications (Write-Ahead guarantee)
+    wal.logRecord(txnId, LOG_UPDATE, "SEAT_" + std::to_string(seatNum), "AVAILABLE", userName);
+    wal.logRecord(txnId, LOG_UPDATE, "MEALS", std::to_string(availableMeals), std::to_string(availableMeals - meals));
+    wal.logRecord(txnId, LOG_UPDATE, "BAGGAGE", std::to_string(availableBaggageKg), std::to_string(availableBaggageKg - baggageKg));
+
+    // SIMULATED CRASH STAGE 1: Crash immediately after WAL logging but BEFORE database update
+    if (crashStage == 1) {
+        triggerSimulatedCrash(101, "Crash Stage 1: Logs written to WAL, but DB state untouched mid-transaction");
+    }
+
+    // STEP 4: Modify Database State in Memory
+    targetSeat.isBooked = true;
+    targetSeat.bookedByUserId = userId;
+    targetSeat.passengerName = userName;
+    availableMeals -= meals;
+    availableBaggageKg -= baggageKg;
+
+    // SIMULATED CRASH STAGE 2: Crash after memory update but BEFORE writing COMMIT record to WAL
+    if (crashStage == 2) {
+        triggerSimulatedCrash(102, "Crash Stage 2: Updated in memory, but crashed before writing COMMIT log");
+    }
+
+    // STEP 5: WAL Record: COMMIT transaction
+    wal.logRecord(txnId, LOG_COMMIT);
+
+    // Record in Bookings Table
+    BookingRecord record = {
+        static_cast<int>(bookingsTable.size() + 1),
+        txnId,
+        userId,
+        userName,
+        seatNum,
+        meals,
+        baggageKg,
+        "COMMITTED"
+    };
+    bookingsTable.push_back(record);
+
+    std::cout << "[Transaction Coordinator] Txn #" << txnId << ": COMMITTED successfully with full ACID compliance.\n";
+    return true;
 }
