@@ -56,4 +56,18 @@ public:
     std::vector<int> getAvailableResources();
 };
 
+// ========================================================
+// Request Scheduling Engine: Priority Queue
+// ========================================================
+class PriorityQueueWithAging {
+private:
+    std::vector<BookingRequest> waitingQueue;
+    std::mutex queueMutex;
+
+public:
+    void enqueueRequest(const BookingRequest& req);
+    bool isEmpty();
+    BookingRequest popHighestPriority();
+};
+
 #endif // ARYAN_OS_H

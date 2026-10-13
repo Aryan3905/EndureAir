@@ -1,5 +1,6 @@
 #include "aryan_os.h"
 #include <iostream>
+#include <algorithm>
 
 const std::string RESOURCE_NAMES[NUM_RESOURCES] = {"Seats", "Meals", "Baggage(kg)"};
 
@@ -133,4 +134,34 @@ void BankersAlgorithm::releaseResources(int userId, const int release[NUM_RESOUR
 std::vector<int> BankersAlgorithm::getAvailableResources() {
     std::lock_guard<std::mutex> lock(baMutex);
     return available;
+}
+
+// ========================================================
+// Priority Queue Implementation
+// ========================================================
+void PriorityQueueWithAging::enqueueRequest(const BookingRequest& req) {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    BookingRequest newReq = req;
+    newReq.agingBonus = 0;
+    newReq.arrivalTime = std::chrono::steady_clock::now();
+    waitingQueue.push_back(newReq);
+    std::cout << "[Process Scheduler] Request #" << req.requestId 
+              << " parked in Waiting Priority Queue. (Priority: " << req.priority << ")\n";
+}
+
+bool PriorityQueueWithAging::isEmpty() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    return waitingQueue.empty();
+}
+
+BookingRequest PriorityQueueWithAging::popHighestPriority() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    auto bestIt = std::max_element(waitingQueue.begin(), waitingQueue.end(),
+        [](const BookingRequest& a, const BookingRequest& b) {
+            return a.priority < b.priority;
+        });
+
+    BookingRequest selected = *bestIt;
+    waitingQueue.erase(bestIt);
+    return selected;
 }
