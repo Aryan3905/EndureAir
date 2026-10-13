@@ -47,6 +47,9 @@ private:
 public:
     BankersAlgorithm(const std::vector<int>& initialResources);
     void registerUserClaim(int userId, const std::vector<int>& maxResources);
+    
+    // Resource-Request Algorithm: validates if immediate allocation is safe
+    bool requestResources(int userId, const int request[NUM_RESOURCES], std::vector<int>& outSafeSeq);
 };
 
 #endif // ARYAN_OS_H

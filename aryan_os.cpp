@@ -68,3 +68,53 @@ bool BankersAlgorithm::isStateSafe(const std::vector<int>& workAvail,
     }
     return true; // System is in a safe state!
 }
+
+// Resource-Request Algorithm: 4-Step Validation & Trial Allocation
+bool BankersAlgorithm::requestResources(int userId, const int request[NUM_RESOURCES], std::vector<int>& outSafeSeq) {
+    std::lock_guard<std::mutex> lock(baMutex);
+
+    if (maxClaim.find(userId) == maxClaim.end()) {
+        maxClaim[userId] = {request[0], request[1], request[2]};
+        allocation[userId] = {0, 0, 0};
+    }
+
+    // Step 1: Check Request <= Need
+    for (int j = 0; j < NUM_RESOURCES; ++j) {
+        int need = maxClaim[userId][j] - allocation[userId][j];
+        if (request[j] > need) {
+            std::cout << "[Deadlock Prevention] User #" << userId 
+                      << " exceeded declared claim for " << RESOURCE_NAMES[j] << "!\n";
+            return false;
+        }
+    }
+
+    // Step 2: Check Request <= Available
+    for (int j = 0; j < NUM_RESOURCES; ++j) {
+        if (request[j] > available[j]) {
+            std::cout << "[Deadlock Prevention] Insufficient immediate " << RESOURCE_NAMES[j] 
+                      << " (Requested: " << request[j] << ", Available: " << available[j] << ")\n";
+            return false;
+        }
+    }
+
+    // Step 3: Trial Allocation (Simulate state transition)
+    std::vector<int> trialAvailable = available;
+    std::map<int, std::vector<int>> trialAlloc = allocation;
+    std::map<int, std::vector<int>> trialMax = maxClaim;
+
+    for (int j = 0; j < NUM_RESOURCES; ++j) {
+        trialAvailable[j] -= request[j];
+        trialAlloc[userId][j] += request[j];
+    }
+
+    // Step 4: Run Safety Algorithm on trial state
+    if (isStateSafe(trialAvailable, trialAlloc, trialMax, outSafeSeq)) {
+        // Safe state preserved! Apply changes permanently
+        available = trialAvailable;
+        allocation = trialAlloc;
+        return true;
+    }
+
+    // Unsafe state! Deny allocation to prevent potential deadlock
+    return false;
+}
