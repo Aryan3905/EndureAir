@@ -57,7 +57,7 @@ public:
 };
 
 // ========================================================
-// Request Scheduling Engine: Priority Queue
+// Request Scheduling Engine: Priority Queue with Aging
 // ========================================================
 class PriorityQueueWithAging {
 private:
@@ -66,6 +66,7 @@ private:
 
 public:
     void enqueueRequest(const BookingRequest& req);
+    void applyAgingStep(); // Prevents process starvation
     bool isEmpty();
     BookingRequest popHighestPriority();
 };

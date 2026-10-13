@@ -137,7 +137,7 @@ std::vector<int> BankersAlgorithm::getAvailableResources() {
 }
 
 // ========================================================
-// Priority Queue Implementation
+// Priority Queue Implementation with Dynamic Aging
 // ========================================================
 void PriorityQueueWithAging::enqueueRequest(const BookingRequest& req) {
     std::lock_guard<std::mutex> lock(queueMutex);
@@ -149,6 +149,13 @@ void PriorityQueueWithAging::enqueueRequest(const BookingRequest& req) {
               << " parked in Waiting Priority Queue. (Priority: " << req.priority << ")\n";
 }
 
+// Dynamic aging: boosts effective priority over time to guarantee starvation freedom
+void PriorityQueueWithAging::applyAgingStep() {
+    for (auto& req : waitingQueue) {
+        req.agingBonus += 1;
+    }
+}
+
 bool PriorityQueueWithAging::isEmpty() {
     std::lock_guard<std::mutex> lock(queueMutex);
     return waitingQueue.empty();
@@ -156,9 +163,11 @@ bool PriorityQueueWithAging::isEmpty() {
 
 BookingRequest PriorityQueueWithAging::popHighestPriority() {
     std::lock_guard<std::mutex> lock(queueMutex);
+    applyAgingStep();
+
     auto bestIt = std::max_element(waitingQueue.begin(), waitingQueue.end(),
         [](const BookingRequest& a, const BookingRequest& b) {
-            return a.priority < b.priority;
+            return a.getEffectivePriority() < b.getEffectivePriority();
         });
 
     BookingRequest selected = *bestIt;
