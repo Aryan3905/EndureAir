@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <mutex>
 #include <chrono>
 
 // Core system resource types: [0] Seats, [1] Meals, [2] Baggage Allowance (kg)
@@ -24,6 +26,21 @@ struct BookingRequest {
     int getEffectivePriority() const {
         return priority + agingBonus;
     }
+};
+
+// ========================================================
+// Deadlock Avoidance Engine: Banker's Algorithm
+// ========================================================
+class BankersAlgorithm {
+private:
+    std::vector<int> available;
+    std::map<int, std::vector<int>> maxClaim;
+    std::map<int, std::vector<int>> allocation;
+    std::mutex baMutex;
+
+public:
+    BankersAlgorithm(const std::vector<int>& initialResources);
+    void registerUserClaim(int userId, const std::vector<int>& maxResources);
 };
 
 #endif // ARYAN_OS_H
