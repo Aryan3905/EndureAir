@@ -137,6 +137,37 @@ std::vector<int> BankersAlgorithm::getAvailableResources() {
     return available;
 }
 
+// Formatted allocation matrix visualization for admin dashboard
+void BankersAlgorithm::printMatrix() {
+    std::lock_guard<std::mutex> lock(baMutex);
+    std::cout << "\n================ DEADLOCK MONITOR: BANKER'S ALGORITHM MATRICES ================\n";
+    std::cout << "Available Resource Vector: ";
+    for (int j = 0; j < NUM_RESOURCES; ++j) {
+        std::cout << RESOURCE_NAMES[j] << ": " << available[j] << "   ";
+    }
+    std::cout << "\n------------------------------------------------------------------------------\n";
+    std::cout << std::left << std::setw(10) << "User ID"
+              << std::setw(20) << "Allocated (S,M,B)"
+              << std::setw(20) << "Max Claim (S,M,B)"
+              << std::setw(20) << "Need (S,M,B)" << "\n";
+    std::cout << "------------------------------------------------------------------------------\n";
+
+    for (const auto& pair : allocation) {
+        int uid = pair.first;
+        const auto& a = pair.second;
+        const auto& m = maxClaim[uid];
+        std::string allocStr = "[" + std::to_string(a[0]) + ", " + std::to_string(a[1]) + ", " + std::to_string(a[2]) + "]";
+        std::string maxStr   = "[" + std::to_string(m[0]) + ", " + std::to_string(m[1]) + ", " + std::to_string(m[2]) + "]";
+        std::string needStr  = "[" + std::to_string(m[0]-a[0]) + ", " + std::to_string(m[1]-a[1]) + ", " + std::to_string(m[2]-a[2]) + "]";
+
+        std::cout << std::left << std::setw(10) << uid
+                  << std::setw(20) << allocStr
+                  << std::setw(20) << maxStr
+                  << std::setw(20) << needStr << "\n";
+    }
+    std::cout << "==============================================================================\n\n";
+}
+
 // ========================================================
 // Priority Queue Implementation with Dynamic Aging
 // ========================================================

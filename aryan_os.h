@@ -54,6 +54,9 @@ public:
     // De-allocates resources on transaction completion or rollback
     void releaseResources(int userId, const int release[NUM_RESOURCES]);
     std::vector<int> getAvailableResources();
+
+    // Formatted allocation matrix visualization for admin dashboard
+    void printMatrix();
 };
 
 // ========================================================
