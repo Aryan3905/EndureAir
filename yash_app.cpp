@@ -137,6 +137,26 @@ public:
         dbmsEngine.wal.truncateLog();
         std::cout << ">> Write-Ahead Log truncated successfully.\n";
     }
+
+    // Administrator Authentication Gatekeeper
+    bool authenticateAdmin() {
+        std::string inputId, inputPass;
+        std::cout << "\n=======================================================\n";
+        std::cout << "          ADMINISTRATIVE AUTHENTICATION PORTAL         \n";
+        std::cout << "=======================================================\n";
+        std::cout << "Enter Administrator ID: ";
+        std::cin >> inputId;
+        std::cout << "Enter Administrator Password: ";
+        std::cin >> inputPass;
+
+        if (inputId == "admin" && inputPass == "admin123") {
+            std::cout << "✅ [Access Granted] Welcome, Administrator.\n";
+            return true;
+        } else {
+            std::cout << "❌ [Access Denied] Invalid Administrator ID or Password!\n";
+            return false;
+        }
+    }
 };
 
 // ========================================================
