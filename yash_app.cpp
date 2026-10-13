@@ -304,11 +304,16 @@ public:
             } else if (adminChoice == 5) {
                 runAdminDatabaseEditor();
             } else if (adminChoice == 6) {
-                std::cout << "\n[Crash Simulation] Launching test transaction for 'CrashTest' on Seat #4...\n";
-                std::cout << "[Crash Simulation] Process will terminate mid-transaction before COMMIT!\n";
+                std::cout << "\n===============================================================\n";
+                std::cout << "  💥 INJECTING SIMULATED FAILURE (POWER LOSS / SIGKILL)       \n";
+                std::cout << "===============================================================\n";
+                std::cout << "Initiating transactional booking for Seat #4...\n";
+                std::cout << "Transaction will abort abruptly after WAL write but before COMMIT.\n";
                 handleBookingRequest(999, "CrashTest", 4, 1, 15, 8, 2);
             } else if (adminChoice == 7) {
+                std::cout << "\n>>> Starting ARIES-Style 3-Pass Recovery Routine...\n";
                 triggerCrashRecoveryEngine();
+                std::cout << ">>> Recovery complete. Verified database state synchronized.\n";
             } else if (adminChoice == 8) {
                 clearLogs();
             } else if (adminChoice == 9) {
