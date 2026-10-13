@@ -50,6 +50,10 @@ public:
     
     // Resource-Request Algorithm: validates if immediate allocation is safe
     bool requestResources(int userId, const int request[NUM_RESOURCES], std::vector<int>& outSafeSeq);
+
+    // De-allocates resources on transaction completion or rollback
+    void releaseResources(int userId, const int release[NUM_RESOURCES]);
+    std::vector<int> getAvailableResources();
 };
 
 #endif // ARYAN_OS_H

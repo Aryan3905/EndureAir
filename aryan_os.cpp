@@ -118,3 +118,19 @@ bool BankersAlgorithm::requestResources(int userId, const int request[NUM_RESOUR
     // Unsafe state! Deny allocation to prevent potential deadlock
     return false;
 }
+
+// Release allocated resources back into available pool on rollback/cancel
+void BankersAlgorithm::releaseResources(int userId, const int release[NUM_RESOURCES]) {
+    std::lock_guard<std::mutex> lock(baMutex);
+    if (allocation.find(userId) != allocation.end()) {
+        for (int j = 0; j < NUM_RESOURCES; ++j) {
+            allocation[userId][j] -= release[j];
+            available[j] += release[j];
+        }
+    }
+}
+
+std::vector<int> BankersAlgorithm::getAvailableResources() {
+    std::lock_guard<std::mutex> lock(baMutex);
+    return available;
+}
