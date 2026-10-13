@@ -7,7 +7,7 @@
 #include <mutex>
 #include <chrono>
 
-// Number and names of managed resources
+// Core system resource types: [0] Seats, [1] Meals, [2] Baggage Allowance (kg)
 constexpr int NUM_RESOURCES = 3;
 extern const std::string RESOURCE_NAMES[NUM_RESOURCES];
 constexpr int TOTAL_SEATS_COUNT = 10;
@@ -29,7 +29,7 @@ struct BookingRequest {
 };
 
 // ========================================================
-// Aryan's Module: Banker's Algorithm (Deadlock Avoidance)
+// Deadlock Avoidance Engine: Banker's Algorithm
 // ========================================================
 class BankersAlgorithm {
 private:
@@ -38,6 +38,7 @@ private:
     std::map<int, std::vector<int>> allocation;
     std::mutex baMutex;
 
+    // Safety Algorithm subroutine
     bool isStateSafe(const std::vector<int>& workAvail,
                      const std::map<int, std::vector<int>>& currentAlloc,
                      const std::map<int, std::vector<int>>& claims,
@@ -45,31 +46,7 @@ private:
 
 public:
     BankersAlgorithm(const std::vector<int>& initialResources);
-
     void registerUserClaim(int userId, const std::vector<int>& maxResources);
-    bool requestResources(int userId, const int request[NUM_RESOURCES], std::vector<int>& outSafeSeq);
-    void releaseResources(int userId, const int release[NUM_RESOURCES]);
-    void printMatrix();
-    std::vector<int> getAvailableResources();
 };
-
-// ========================================================
-// Aryan's Module: Priority Queue with Aging (Scheduling)
-// ========================================================
-class PriorityQueueWithAging {
-private:
-    std::vector<BookingRequest> waitingQueue;
-    std::mutex queueMutex;
-
-public:
-    void enqueueRequest(const BookingRequest& req);
-    void applyAgingStep();
-    bool isEmpty();
-    BookingRequest popHighestPriority();
-    void printQueueStatus();
-};
-
-// Function to simulate sudden crash (SIGKILL/mid-transaction termination)
-void triggerSimulatedCrash(int exitCode, const std::string& reason);
 
 #endif // ARYAN_OS_H
