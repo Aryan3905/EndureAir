@@ -274,3 +274,32 @@ void EndureAirDatabase::performCrashRecovery() {
 
     std::cout << "================ CRASH RECOVERY COMPLETED: DATABASE CONSISTENCY RESTORED =============\n\n";
 }
+
+// SQL Transaction Audit Report
+void EndureAirDatabase::printAuditReport() {
+    std::cout << "\n================ SQL TRANSACTION AUDIT REPORT (COMMITTED BOOKINGS) ================\n";
+    if (bookingsTable.empty()) {
+        std::cout << ">> No committed records found in Bookings table.\n";
+    } else {
+        std::cout << std::left << std::setw(8) << "BookID"
+                  << std::setw(8) << "TxnID"
+                  << std::setw(8) << "UserID"
+                  << std::setw(16) << "Passenger"
+                  << std::setw(8) << "Seat"
+                  << std::setw(8) << "Meals"
+                  << std::setw(10) << "Baggage"
+                  << std::setw(12) << "Status\n";
+        std::cout << "-----------------------------------------------------------------------------------\n";
+        for (const auto& b : bookingsTable) {
+            std::cout << std::left << std::setw(8) << b.bookingId
+                      << std::setw(8) << b.txnId
+                      << std::setw(8) << b.userId
+                      << std::setw(16) << b.passengerName
+                      << std::setw(8) << b.seatNumber
+                      << std::setw(8) << b.meals
+                      << std::setw(10) << (std::to_string(b.baggageKg) + "kg")
+                      << std::setw(12) << b.status << "\n";
+        }
+    }
+    std::cout << "===================================================================================\n\n";
+}

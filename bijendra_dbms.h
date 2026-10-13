@@ -90,6 +90,9 @@ public:
 
     // 3-Pass Undo/Redo Crash Recovery Engine
     void performCrashRecovery();
+
+    // SQL Audit query simulation for committed transactions
+    void printAuditReport();
 };
 
 #endif // BIJENDRA_DBMS_H
