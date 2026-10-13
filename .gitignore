@@ -7,6 +7,8 @@
 # Runtime Database & Crash Recovery Logs
 *.log
 wal.log
+database_state.txt
+team_commits/
 
 # IDE & Editor Configuration
 .vscode/
