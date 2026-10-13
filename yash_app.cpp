@@ -6,7 +6,7 @@
 #include "bijendra_dbms.h"
 
 // ========================================================
-// Yash's Module: Integration & Dashboards Controller
+// EndureAir Core Orchestrator & Dashboards
 // ========================================================
 class EndureAirSystem {
 private:
@@ -31,26 +31,26 @@ public:
         int txnId = transactionCounter++;
 
         std::cout << "\n--------------------------------------------------------------\n";
-        std::cout << ">>> [YASH INTEGRATOR] Processing Booking Request #" << reqId 
+        std::cout << ">>> [Core Orchestrator] Processing Booking Request #" << reqId 
                   << " for Passenger: " << userName << "\n";
         std::cout << "--------------------------------------------------------------\n";
 
         // Pre-check if seat is already occupied in the database
         if (dbmsEngine.isSeatBooked(seatNum)) {
-            std::cout << "❌ [Integrator Warning] Seat #" << seatNum << " is already occupied. Please pick another seat.\n";
+            std::cout << "❌ [Validation Error] Seat #" << seatNum << " is already occupied. Please select an available seat.\n";
             return;
         }
 
-        // STEP 1: OS Deadlock Avoidance Check (Aryan's Banker's Algorithm)
+        // STEP 1: OS Deadlock Avoidance Check (Banker's Algorithm)
         int requestedRes[NUM_RESOURCES] = {1, meals, baggageKg};
         std::vector<int> safeSequence;
 
-        std::cout << ">>> [Step 1: Deadlock Avoidance] Calling Aryan's Banker's Algorithm...\n";
+        std::cout << ">>> [Deadlock Avoidance] Invoking Banker's Safety Algorithm...\n";
         bool isSafe = bankerEngine.requestResources(userId, requestedRes, safeSequence);
 
         if (!isSafe) {
-            std::cout << "⚠️  [Banker's Check UNSAFE] Immediate allocation would risk Deadlock!\n";
-            std::cout << ">> Parking request in Aryan's Starvation-Free Priority Queue...\n";
+            std::cout << "⚠️  [Deadlock Prevention] Allocation would place system in UNSAFE STATE!\n";
+            std::cout << ">> Queuing request in Starvation-Free Priority Queue with Aging...\n";
             BookingRequest req = {
                 reqId, userId, userName, seatNum,
                 {1, meals, baggageKg},
@@ -65,14 +65,14 @@ public:
         for (int uid : safeSequence) std::cout << "P" << uid << " ";
         std::cout << "\n";
 
-        // STEP 2: DBMS ACID Transaction & Row-Level Locking (Bijendra's Engine)
-        std::cout << ">>> [Step 2: Database Transaction] Calling Bijendra's DBMS Engine with Row-Level Lock & WAL...\n";
+        // STEP 2: DBMS ACID Transaction & Row-Level Locking
+        std::cout << ">>> [Transaction Pipeline] Submitting to ACID Storage Engine with Row Lock & WAL...\n";
         bool txnSuccess = dbmsEngine.executeBookingTransaction(
             txnId, userId, userName, seatNum, meals, baggageKg, crashSimulationMode
         );
 
         if (!txnSuccess) {
-            std::cout << "❌ [Transaction FAILED] Rolling back Banker's Algorithm resource reservations...\n";
+            std::cout << "❌ [Transaction Rollback] Rolling back Banker's Algorithm resource reservations...\n";
             bankerEngine.releaseResources(userId, requestedRes);
         } else {
             std::cout << "🎉 [SUCCESS] Booking Confirmed! E-Ticket generated for " << userName 
@@ -87,7 +87,7 @@ public:
             return;
         }
 
-        std::cout << "\n>>> [YASH INTEGRATOR] Extracting next request from Aryan's Aging Priority Queue...\n";
+        std::cout << "\n>>> [Process Scheduler] De-queuing next request from Priority Queue (Evaluating Aging)...\n";
         BookingRequest req = queueEngine.popHighestPriority();
         std::cout << ">> Serving De-queued Request #" << req.requestId 
                   << " for " << req.userName 
@@ -117,6 +117,19 @@ public:
         dbmsEngine.printAuditReport();
     }
 
+    void showDirectDatabaseAccess() {
+        std::cout << "\n=======================================================\n";
+        std::cout << "          DIRECT DATABASE INSPECTION & SQL TABLES      \n";
+        std::cout << "=======================================================\n";
+        std::cout << ">> Synchronizing in-memory relational tables with persistent disk storage...\n";
+        dbmsEngine.dumpDatabaseToFile("database_state.txt");
+        std::cout << ">> [STORAGE STATUS] Database snapshot synchronized: database_state.txt\n";
+        std::cout << ">> [STORAGE STATUS] Active Write-Ahead Log stream: wal.log\n";
+        std::cout << ">> [STORAGE STATUS] Relational DDL Schema reference: schema.sql\n\n";
+        dbmsEngine.printSeatMap();
+        dbmsEngine.printAuditReport();
+    }
+
     void triggerCrashRecoveryEngine() {
         dbmsEngine.performCrashRecovery();
     }
@@ -125,67 +138,227 @@ public:
         dbmsEngine.wal.truncateLog();
         std::cout << ">> Write-Ahead Log truncated successfully.\n";
     }
+
+    // Administrator Authentication Gatekeeper
+    bool authenticateAdmin() {
+        std::string inputId, inputPass;
+        std::cout << "\n=======================================================\n";
+        std::cout << "          ADMINISTRATIVE AUTHENTICATION PORTAL         \n";
+        std::cout << "=======================================================\n";
+        std::cout << "Enter Administrator ID: ";
+        std::cin >> inputId;
+        std::cout << "Enter Administrator Password: ";
+        std::cin >> inputPass;
+
+        if (inputId == "admin" && inputPass == "admin123") {
+            std::cout << "✅ [Access Granted] Welcome, Administrator.\n";
+            return true;
+        } else {
+            std::cout << "❌ [Access Denied] Invalid Administrator ID or Password!\n";
+            return false;
+        }
+    }
+    // ========================================================
+    // User Interface Portal (Passenger Self-Service)
+    // ========================================================
+    void runUserPortal() {
+        int userChoice;
+        while (true) {
+            std::cout << "\n---------------------------------------------------------------\n";
+            std::cout << "              PASSENGER USER INTERFACE (SELF-SERVICE)          \n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << " [1] Book Flight Ticket (Seat, Meals, Baggage, Priority)\n";
+            std::cout << " [2] View Cabin Seat Map & Live Inventory\n";
+            std::cout << " [3] View Waiting Queue Position & Aging Priority\n";
+            std::cout << " [4] View My Booking Status & E-Ticket Lookup\n";
+            std::cout << " [5] Return to Main Portal Selection\n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << "Enter choice [1-5]: ";
+
+            if (!(std::cin >> userChoice)) {
+                std::cin.clear();
+                std::cin.ignore(1000, '\n');
+                continue;
+            }
+
+            if (userChoice == 1) {
+                int uid, seat, meals, baggage, prio;
+                std::string name;
+                std::cout << "Enter User ID (e.g. 101): "; std::cin >> uid;
+                std::cout << "Enter Passenger Name: "; std::cin >> name;
+                std::cout << "Enter Seat Number (1-10): "; std::cin >> seat;
+                std::cout << "Enter Number of Meals: "; std::cin >> meals;
+                std::cout << "Enter Baggage Weight (kg): "; std::cin >> baggage;
+                std::cout << "Enter Request Priority (1-10): "; std::cin >> prio;
+
+                handleBookingRequest(uid, name, seat, meals, baggage, prio, 0);
+            } else if (userChoice == 2) {
+                dbmsEngine.printSeatMap();
+            } else if (userChoice == 3) {
+                queueEngine.printQueueStatus();
+            } else if (userChoice == 4) {
+                int searchUid;
+                std::cout << "\nEnter your User ID to lookup booking status: ";
+                std::cin >> searchUid;
+                std::cout << "\n>>> [Database Query] Retrieving confirmed reservation for User #" << searchUid << "...\n";
+                dbmsEngine.printAuditReport();
+            } else if (userChoice == 5) {
+                break;
+            } else {
+                std::cout << "Invalid choice! Enter 1-5.\n";
+            }
+        }
+    }
+
+    // ========================================================
+    // Direct Database Editor (Admin Data Overrides)
+    // ========================================================
+    void runAdminDatabaseEditor() {
+        int editChoice;
+        while (true) {
+            std::cout << "\n---------------------------------------------------------------\n";
+            std::cout << "          ADMINISTRATIVE DIRECT DATABASE EDITOR (CRUD)         \n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << " [1] Modify / Reassign Seat Record\n";
+            std::cout << " [2] Adjust Inventory Levels (Meals & Baggage)\n";
+            std::cout << " [3] Cancel / Rollback an Existing Booking\n";
+            std::cout << " [4] View Current On-Disk Database State (Snapshot)\n";
+            std::cout << " [5] Return to Administrator Console\n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << "Enter option [1-5]: ";
+
+            if (!(std::cin >> editChoice)) {
+                std::cin.clear();
+                std::cin.ignore(1000, '\n');
+                continue;
+            }
+
+            if (editChoice == 1) {
+                int sNum, uId, stateInt;
+                std::string pName;
+                std::cout << "Enter Seat Number (1-10): "; std::cin >> sNum;
+                std::cout << "Set Status (1 = Booked, 0 = Available): "; std::cin >> stateInt;
+                if (stateInt == 1) {
+                    std::cout << "Enter User ID: "; std::cin >> uId;
+                    std::cout << "Enter Passenger Name: "; std::cin >> pName;
+                    dbmsEngine.adminUpdateSeat(sNum, true, uId, pName);
+                } else {
+                    dbmsEngine.adminUpdateSeat(sNum, false, -1, "AVAILABLE");
+                }
+            } else if (editChoice == 2) {
+                int m, b;
+                std::cout << "Enter New Available Meals: "; std::cin >> m;
+                std::cout << "Enter New Available Baggage Capacity (kg): "; std::cin >> b;
+                dbmsEngine.adminUpdateInventory(m, b);
+            } else if (editChoice == 3) {
+                int bId;
+                std::cout << "Enter Booking ID to cancel/rollback: "; std::cin >> bId;
+                dbmsEngine.adminCancelBooking(bId);
+            } else if (editChoice == 4) {
+                showDirectDatabaseAccess();
+            } else if (editChoice == 5) {
+                break;
+            } else {
+                std::cout << "Invalid choice! Enter 1-5.\n";
+            }
+        }
+    }
+
+    // ========================================================
+    // Administrator Portal (Protected System Controls)
+    // ========================================================
+    void runAdminPortal() {
+        if (!authenticateAdmin()) return;
+
+        int adminChoice;
+        while (true) {
+            std::cout << "\n---------------------------------------------------------------\n";
+            std::cout << "              ADMINISTRATOR MANAGEMENT CONSOLE                 \n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << " [1] View Banker's Algorithm Allocation Matrices (Deadlock)\n";
+            std::cout << " [2] Process Next Request in Waiting Queue (With Aging)\n";
+            std::cout << " [3] View Transaction Write-Ahead Log (WAL Dump)\n";
+            std::cout << " [4] View SQL Transaction Audit Report\n";
+            std::cout << " [5] Direct Database CRUD Editor (Modify Seats, Inventory, Bookings)\n";
+            std::cout << " [6] Simulate Mid-Transaction System Crash\n";
+            std::cout << " [7] Run 3-Pass Undo/Redo Crash Recovery Engine\n";
+            std::cout << " [8] Reset / Truncate WAL Log File\n";
+            std::cout << " [9] Logout & Return to Main Portal Selection\n";
+            std::cout << "---------------------------------------------------------------\n";
+            std::cout << "Enter admin choice [1-9]: ";
+
+            if (!(std::cin >> adminChoice)) {
+                std::cin.clear();
+                std::cin.ignore(1000, '\n');
+                continue;
+            }
+
+            if (adminChoice == 1) {
+                bankerEngine.printMatrix();
+            } else if (adminChoice == 2) {
+                processNextWaitingRequest();
+            } else if (adminChoice == 3) {
+                dbmsEngine.wal.displayRawLogs();
+            } else if (adminChoice == 4) {
+                dbmsEngine.printAuditReport();
+            } else if (adminChoice == 5) {
+                runAdminDatabaseEditor();
+            } else if (adminChoice == 6) {
+                std::cout << "\n===============================================================\n";
+                std::cout << "  💥 INJECTING SIMULATED FAILURE (POWER LOSS / SIGKILL)       \n";
+                std::cout << "===============================================================\n";
+                std::cout << "Initiating transactional booking for Seat #4...\n";
+                std::cout << "Transaction will abort abruptly after WAL write but before COMMIT.\n";
+                handleBookingRequest(999, "CrashTest", 4, 1, 15, 8, 2);
+            } else if (adminChoice == 7) {
+                std::cout << "\n>>> Starting ARIES-Style 3-Pass Recovery Routine...\n";
+                triggerCrashRecoveryEngine();
+                std::cout << ">>> Recovery complete. Verified database state synchronized.\n";
+            } else if (adminChoice == 8) {
+                clearLogs();
+            } else if (adminChoice == 9) {
+                std::cout << "Logging out from Administrator Console...\n";
+                break;
+            } else {
+                std::cout << "Invalid choice! Enter 1-9.\n";
+            }
+        }
+    }
 };
 
 // ========================================================
-// Yash's Interactive Console Interface
+// Main Entry Point & Dual Portal Router
 // ========================================================
 int main() {
     EndureAirSystem app;
-    int choice;
+    int portalChoice;
 
     while (true) {
         std::cout << "\n===============================================================\n";
-        std::cout << "     ENDUREAIR — BOOKING THAT SURVIVES THE CRASH (PHASE 2)     \n";
-        std::cout << "     Team #Nirvana | Aryan (OS) | Bijendra (DBMS) | Yash (Int) \n";
+        std::cout << "        ENDUREAIR — RESILIENT AIRLINE TRANSACTION SYSTEM       \n";
+        std::cout << "        Deadlock Prevention | Row Locking | WAL Crash Recovery \n";
         std::cout << "===============================================================\n";
-        std::cout << " [1] Book Flight (User Flow: Deadlock Check + Row Lock + WAL)\n";
-        std::cout << " [2] User Dashboard (View Seats & Queue Status)\n";
-        std::cout << " [3] Admin Dashboard (Banker's Matrices, Seat Map & WAL Dump)\n";
-        std::cout << " [4] Process Next Request in Waiting Queue (With Aging)\n";
-        std::cout << " [5] [SIMULATE CRASH] Crash Mid-Transaction (Before COMMIT)\n";
-        std::cout << " [6] [CRASH RECOVERY] Run Undo/Redo Recovery on WAL\n";
-        std::cout << " [7] Clear / Reset WAL Log File\n";
-        std::cout << " [8] Exit Program\n";
+        std::cout << " [1] Passenger User Interface (Open Access)\n";
+        std::cout << " [2] Administrator Management Portal (Requires Login)\n";
+        std::cout << " [3] Exit System\n";
         std::cout << "---------------------------------------------------------------\n";
-        std::cout << "Enter your choice [1-8]: ";
+        std::cout << "Select Portal [1-3]: ";
 
-        if (!(std::cin >> choice)) {
+        if (!(std::cin >> portalChoice)) {
             std::cin.clear();
             std::cin.ignore(1000, '\n');
             continue;
         }
 
-        if (choice == 1) {
-            int uid, seat, meals, baggage, prio;
-            std::string name;
-            std::cout << "Enter User ID (e.g. 101): "; std::cin >> uid;
-            std::cout << "Enter Passenger Name: "; std::cin >> name;
-            std::cout << "Enter Seat Number (1-10): "; std::cin >> seat;
-            std::cout << "Enter Number of Meals: "; std::cin >> meals;
-            std::cout << "Enter Baggage Weight (kg): "; std::cin >> baggage;
-            std::cout << "Enter Request Priority (1-10): "; std::cin >> prio;
-
-            app.handleBookingRequest(uid, name, seat, meals, baggage, prio, 0);
-        } else if (choice == 2) {
-            app.showUserDashboard();
-        } else if (choice == 3) {
-            app.showAdminDashboard();
-        } else if (choice == 4) {
-            app.processNextWaitingRequest();
-        } else if (choice == 5) {
-            std::cout << "\n[Crash Simulation] Launching booking for Passenger 'CrashUser' on Seat #4...\n";
-            std::cout << "[Crash Simulation] Will kill process after DB state modification but BEFORE writing COMMIT log!\n";
-            app.handleBookingRequest(999, "CrashUser", 4, 1, 15, 8, 2);
-        } else if (choice == 6) {
-            app.triggerCrashRecoveryEngine();
-        } else if (choice == 7) {
-            app.clearLogs();
-        } else if (choice == 8) {
-            std::cout << "Exiting EndureAir. Have a great day!\n";
+        if (portalChoice == 1) {
+            app.runUserPortal();
+        } else if (portalChoice == 2) {
+            app.runAdminPortal();
+        } else if (portalChoice == 3) {
+            std::cout << "Shutting down EndureAir System. Goodbye!\n";
             break;
         } else {
-            std::cout << "Invalid selection! Please enter a number from 1 to 8.\n";
+            std::cout << "Invalid selection! Please enter 1, 2, or 3.\n";
         }
     }
 

@@ -129,43 +129,58 @@ The main goal is to build an educational yet realistic system that demonstrates 
 
 ---
 
-## 👥 Phase-2 Team Member File Division (Team #Nirvana)
+## 🏛️ System Modular Architecture
 
-| Team Member | Domain | Header File | Source File | Core Responsibilities |
-| :--- | :--- | :--- | :--- | :--- |
-| **Aryan Bhatt** *(Lead)* | **Operating Systems (OS)** | `aryan_os.h` | `aryan_os.cpp` | Banker's Algorithm (Deadlock Avoidance), Multi-resource safety check, Priority Queue with Aging (starvation prevention), Simulated Crash trigger |
-| **Bijendra Rawat** | **Database Systems (DBMS)** | `bijendra_dbms.h` | `bijendra_dbms.cpp` | ACID transactions, Row-level locking on seats, Write-Ahead Logging (WAL `wal.log`), Undo/Redo Crash Recovery engine, Audit reporting |
-| **Yash Yadav** | **Integration & Dashboards** | — | `yash_app.cpp` | System orchestrator, User Dashboard, Admin Dashboard, interactive CLI menu |
+| Component Module | Header File | Source File | Core Capabilities |
+| :--- | :--- | :--- | :--- |
+| **Deadlock Avoidance & Scheduling Engine** | `aryan_os.h` | `aryan_os.cpp` | Multi-Resource Banker's Algorithm, Safe state detection, Dynamic Aging Priority Queue (starvation-free), Mid-transaction crash injector |
+| **Transaction & Recovery Engine** | `bijendra_dbms.h` | `bijendra_dbms.cpp` | Relational SQL schema (`schema.sql`), Row-level exclusive locking, Write-Ahead Logging (`wal.log`), 3-Pass Undo/Redo recovery, Admin CRUD overrides |
+| **Core Orchestrator & Dashboards** | — | `yash_app.cpp` | Dual-portal entry, Admin authentication (`admin` / `admin123`), Live SQL table synchronization (`database_state.txt`), Interactive CLI menu |
 
 ---
 
-## 🛠️ How to Compile & Run (C++ Implementation)
+## 🔐 Access Portals & Credentials
 
-### Using the Batch Script:
+The system separates passenger operations from sensitive database and recovery controls:
+
+### 1. Passenger User Interface (Open Access)
+* **Book Flight Ticket:** Select desired seat, in-flight meals, baggage capacity, and booking priority.
+* **Cabin Seat Map:** Real-time visibility into occupied and available seats and resource pools.
+* **Waiting Queue:** View waitlist position and accumulated aging points.
+* **Ticket Status Lookup:** Search confirmed reservations by User ID.
+
+### 2. Administrator Management Console (Authentication Required)
+* **Default Admin ID:** `admin`
+* **Default Admin Password:** `admin123`
+* **Features:**
+  * View real-time Banker's Algorithm Allocation Matrices (`Available`, `Allocation`, `MaxClaim`, `Need`).
+  * Process deferred waitlist requests with aging bonuses.
+  * Direct Database CRUD Editor (manually reassign seats, restock inventory, rollback reservations).
+  * Inspect transaction Write-Ahead Log (`wal.log`) and SQL audit tables.
+  * Trigger failure injection (mid-transaction crash).
+  * Execute 3-Pass Undo/Redo Crash Recovery engine.
+
+---
+
+## 💾 Direct Database Inspection & Relational Files
+
+The system provides persistent on-disk database files for direct inspection:
+1. **`schema.sql`**: Normalized DDL schema defining `Users`, `Seats`, `Meals`, `Baggage`, `Bookings`, and `Logs`.
+2. **`database_state.txt`**: Real-time plain-text dump of all in-memory database tables.
+3. **`wal.log`**: Persistent transaction log capturing atomicity and durability state changes.
+
+---
+
+## 🛠️ Compilation & Execution
+
+### Using Batch Script (Windows):
 Double-click `build.bat` or run:
 ```cmd
 build.bat
 ```
 
-### Or using g++ in terminal:
+### Using g++ Terminal:
 ```powershell
 g++ -std=c++17 aryan_os.cpp bijendra_dbms.cpp yash_app.cpp -o endure_air.exe
 .\endure_air.exe
 ```
-
----
-
-## 🧪 Live Evaluation Demo Scenarios
-
-1. **Deadlock Avoidance (Aryan's Module):**
-   * Select Option `[1]` to book with standard parameters -> verified Safe, allocation granted.
-   * Attempt booking with an excessive resource request (e.g. 20 meals or 500kg baggage) -> Banker's algorithm detects unsafe state, blocks immediate allocation, and parks it in Aryan's Priority Queue.
-2. **Aging Mechanism (Aryan's Module):**
-   * Select Option `[2]` or `[4]` -> see how aging points increase waiting priority over time so no request starves.
-3. **Row-Level Seat Locking (Bijendra's Module):**
-   * Booking an already occupied seat immediately triggers a row lock conflict message and prevents double-booking.
-4. **Crash Simulation & WAL (Bijendra + Aryan):**
-   * Select Option `[5]` -> Injects a mid-transaction failure. The process terminates immediately after writing WAL updates but before `COMMIT`.
-5. **Crash Recovery (Bijendra's Module):**
-   * Re-launch `endure_air.exe` and select Option `[6]`.
-   * Bijendra's recovery engine reads `wal.log`, runs the **Analysis Pass**, detects the aborted/in-flight transaction, and runs the **Undo Pass** to restore data consistency!
