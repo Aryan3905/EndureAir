@@ -60,9 +60,7 @@ public:
                    const std::string& oldVal = "", 
                    const std::string& newVal = "");
 
-    std::vector<WalEntry> parseLogFile();
     void truncateLog();
-    void displayRawLogs();
 };
 
 #endif // BIJENDRA_DBMS_H
