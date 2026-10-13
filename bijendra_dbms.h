@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+
 // ========================================================
 // Database Schema Data Models
 // ========================================================
@@ -40,6 +41,28 @@ struct WalEntry {
     std::string item;
     std::string oldValue;
     std::string newValue;
+};
+
+// ========================================================
+// Storage Engine: Write-Ahead Logger (WAL)
+// ========================================================
+class WriteAheadLogger {
+private:
+    std::string logFilePath;
+    std::mutex walMutex;
+
+public:
+    WriteAheadLogger(const std::string& path = "wal.log");
+
+    // Appends transaction log record to disk before modifying in-memory state
+    void logRecord(int txnId, LogRecordType type, 
+                   const std::string& item = "", 
+                   const std::string& oldVal = "", 
+                   const std::string& newVal = "");
+
+    std::vector<WalEntry> parseLogFile();
+    void truncateLog();
+    void displayRawLogs();
 };
 
 #endif // BIJENDRA_DBMS_H
