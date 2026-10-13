@@ -121,10 +121,11 @@ public:
         std::cout << "\n=======================================================\n";
         std::cout << "          DIRECT DATABASE INSPECTION & SQL TABLES      \n";
         std::cout << "=======================================================\n";
-        std::cout << ">> Database state is saved directly to disk in: database_state.txt\n";
-        std::cout << ">> Write-Ahead Log is stored directly on disk in: wal.log\n";
-        std::cout << ">> MySQL relational schema available in: schema.sql\n\n";
+        std::cout << ">> Synchronizing in-memory relational tables with persistent disk storage...\n";
         dbmsEngine.dumpDatabaseToFile("database_state.txt");
+        std::cout << ">> [STORAGE STATUS] Database snapshot synchronized: database_state.txt\n";
+        std::cout << ">> [STORAGE STATUS] Active Write-Ahead Log stream: wal.log\n";
+        std::cout << ">> [STORAGE STATUS] Relational DDL Schema reference: schema.sql\n\n";
         dbmsEngine.printSeatMap();
         dbmsEngine.printAuditReport();
     }
