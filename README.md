@@ -123,7 +123,7 @@ This project demonstrates the practical integration of OS and DBMS concepts rath
 - Performance benchmarking
 - Dockerized deployment
 
-## 📌 Project Purpose
+## Project Purpose
 
 The main goal is to build an educational yet realistic system that demonstrates how **Operating System resource management** and **Database transaction management** can cooperate to create a reliable, concurrent, and crash-resilient booking system.
 
@@ -139,7 +139,7 @@ The main goal is to build an educational yet realistic system that demonstrates 
 
 ---
 
-## 🔐 Access Portals & Credentials
+## Access Portals & Credentials
 
 The system separates passenger operations from sensitive database and recovery controls:
 
@@ -162,7 +162,7 @@ The system separates passenger operations from sensitive database and recovery c
 
 ---
 
-## 💾 Direct Database Inspection & Relational Files
+## Direct Database Inspection & Relational Files
 
 The system provides persistent on-disk database files for direct inspection:
 1. **`schema.sql`**: Normalized DDL schema defining `Users`, `Seats`, `Meals`, `Baggage`, `Bookings`, and `Logs`.
@@ -171,7 +171,7 @@ The system provides persistent on-disk database files for direct inspection:
 
 ---
 
-## 🛠️ Compilation & Execution
+## Compilation & Execution
 
 ### Using Batch Script (Windows):
 Double-click `build.bat` or run:
