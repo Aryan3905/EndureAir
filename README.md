@@ -2,11 +2,11 @@
 
 A simulation-based booking management system that integrates core **Operating System** and **Database Management System** concepts to handle resource allocation, concurrent bookings, system crashes, and recovery.
 
-## 🚀 Overview
+## Overview
 
 The system models a real-world booking platform where resources such as **seats, meals, and baggage slots** are allocated to users. It demonstrates how OS and DBMS concepts can work together to maintain consistency, prevent conflicts, and recover safely from failures.
 
-## 🧠 OS Concepts Used
+## OS Concepts Used
 
 - **Deadlock Avoidance — Banker's Algorithm:** Checks whether a booking request keeps the system in a safe state.
 - **Process Scheduling:** Handles multiple booking requests and queues requests when immediate allocation is unsafe.
@@ -15,7 +15,7 @@ The system models a real-world booking platform where resources such as **seats,
 - **System Crash Simulation:** Simulates a process failure in the middle of a transaction.
 - **Checkpointing & Crash Recovery:** Restores the system to a consistent resource state after a crash.
 
-## 🗄️ DBMS Concepts Used
+## DBMS Concepts Used
 
 - **Transactions:** Every booking is handled as a transaction.
 - **ACID Properties:** Ensures atomicity, consistency, isolation, and durability.
@@ -28,7 +28,7 @@ The system models a real-world booking platform where resources such as **seats,
 - **Views:** Provides different access levels for Admins and Users.
 - **Normalization & ER Model:** Ensures a structured and efficient database schema.
 
-## 🔄 Booking Flow
+## Booking Flow
 
 ```text
 User Request
@@ -53,7 +53,7 @@ WAL / Commit
 Booking Confirmed
 ```
 
-## 💥 Crash Recovery Flow
+## Crash Recovery Flow
 
 ```text
 Transaction Started
@@ -73,7 +73,7 @@ Undo / Redo Operations
 Consistent State Restored
 ```
 
-## 🎯 Key Features
+## Key Features
 
 - Deadlock-safe resource allocation
 - Concurrent booking simulation
@@ -86,7 +86,7 @@ Consistent State Restored
 - SQL-based audit and recovery history
 - Integration of OS and DBMS concepts in one system
 
-## 🛠️ Technologies
+## Technologies
 
 - **Frontend:** React.js
 - **Backend:** FastAPI
@@ -94,11 +94,11 @@ Consistent State Restored
 - **Programming:** Python / C++
 - **Database:** SQL
 
-## 📚 Learning Objectives
+## Learning Objectives
 
 This project demonstrates the practical integration of OS and DBMS concepts rather than treating them as isolated theoretical topics. It shows how deadlock avoidance, synchronization, transactions, concurrency control, and recovery mechanisms can work together in a real-world booking scenario.
 
-## 👥 Access Control
+## Access Control
 
 ### Admin
 - View complete booking logs
@@ -113,7 +113,7 @@ This project demonstrates the practical integration of OS and DBMS concepts rath
 - Check booking status
 - View their transaction history
 
-## 🔮 Future Improvements
+## Future Improvements
 
 - Real-time booking dashboard
 - Distributed transaction support
