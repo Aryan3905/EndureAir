@@ -129,7 +129,7 @@ The main goal is to build an educational yet realistic system that demonstrates 
 
 ---
 
-## 🏛️ System Modular Architecture
+## System Modular Architecture
 
 | Component Module | Header File | Source File | Core Capabilities |
 | :--- | :--- | :--- | :--- |
