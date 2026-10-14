@@ -60,7 +60,47 @@ public:
                    const std::string& oldVal = "", 
                    const std::string& newVal = "");
 
+    std::vector<WalEntry> parseLogFile();
     void truncateLog();
+    void displayRawLogs();
+};
+
+// ========================================================
+// Storage Engine: Relational Database & Transaction Engine
+// ========================================================
+class EndureAirDatabase {
+private:
+    DbSeat seats[DB_TOTAL_SEATS];
+    int availableMeals;
+    int availableBaggageKg;
+    std::vector<BookingRecord> bookingsTable;
+    std::mutex dbGlobalMutex;
+
+public:
+    WriteAheadLogger wal;
+
+    EndureAirDatabase(int initialMeals = 15, int initialBaggage = 300);
+    void printSeatMap();
+    bool isSeatBooked(int seatNum);
+
+    // Executes ACID transaction with Row-Level Exclusive Locking
+    bool executeBookingTransaction(int txnId, int userId, const std::string& userName,
+                                   int seatNum, int meals, int baggageKg,
+                                   int crashStage);
+
+    // 3-Pass Undo/Redo Crash Recovery Engine
+    void performCrashRecovery();
+
+    // SQL Audit query simulation for committed transactions
+    void printAuditReport();
+
+    // Admin Direct Database Modification Methods
+    bool adminUpdateSeat(int seatNum, bool isBooked, int userId, const std::string& name);
+    void adminUpdateInventory(int newMeals, int newBaggageKg);
+    bool adminCancelBooking(int bookingId);
+
+    // Real-Time On-Disk Table Snapshot Export
+    void dumpDatabaseToFile(const std::string& filename = "database_state.txt");
 };
 
 #endif // BIJENDRA_DBMS_H
