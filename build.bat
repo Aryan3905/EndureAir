@@ -1,16 +1,18 @@
 @echo off
-echo ========================================================
-echo   EndureAir: Resilient Transaction Processing System
-echo   Building Modular C++ Binaries (OS + DBMS + UI)
-echo ========================================================
-g++ -std=c++17 aryan_os.cpp bijendra_dbms.cpp yash_app.cpp -o endure_air.exe
+echo ===========================================================================
+echo   EndureAir: Crash-Consistent Airline Reservation ^& Payment Reconciler
+echo   Building Modular C++17 Engine (OS + DBMS + Mock Gateway + Benchmark)
+echo ===========================================================================
+g++ -std=c++17 -O2 aryan_os.cpp bijendra_dbms.cpp yash_app.cpp -o endure_air.exe -lpthread
 
 if %errorlevel% equ 0 (
     echo.
     echo [BUILD SUCCESS] Binary compiled: endure_air.exe
-    echo Execute using: endure_air.exe
+    echo   Interactive Console : .\endure_air.exe
+    echo   All 7 Scenarios     : .\endure_air.exe --all-scenarios
+    echo   500 Crash Loop      : .\endure_air.exe --crash-loop 500
+    echo   Locking Benchmark   : .\endure_air.exe --benchmark
 ) else (
     echo.
-    echo [BUILD ERROR] Compilation failed. Please verify MinGW / g++ installation.
+    echo [BUILD ERROR] Compilation failed. Verify MinGW / g++ installation.
 )
-pause
