@@ -1,4 +1,4 @@
-# Compiled Binaries & Executables
+﻿# Compiled Binaries & Executables
 *.exe
 *.o
 *.obj
@@ -7,8 +7,16 @@
 # Runtime Database & Crash Recovery Logs
 *.log
 wal.log
+engine_state.dat
 database_state.txt
+database_state.sql
 team_commits/
+team_commits_phase3/
+
+# Dependencies & Archives
+node_modules/
+*.zip
+.DS_Store
 
 # IDE & Editor Configuration
 .vscode/
