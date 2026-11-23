@@ -272,6 +272,16 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               >
                 Passes ({bookings.length})
               </button>
+              <a
+                href="/EndureAir_Phase3_Comprehensive_PBL_Report.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Download Phase 3 Comprehensive PBL Master Report (PDF)"
+                className="px-4 py-2 font-mono text-xs tracking-wide text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Report</span>
+                <span className="text-[10px] px-1 py-0.2 bg-[#d4af37]/20 border border-[#d4af37]/40 rounded font-semibold text-[#f3e5ab]">PDF</span>
+              </a>
               <button
                 onClick={onToggleTheme}
                 title="Toggle Atmosphere Mode"
