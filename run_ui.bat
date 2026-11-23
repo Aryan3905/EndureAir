@@ -1,9 +1,5 @@
 @echo off
-echo ==================================================================
-echo   Starting EndureAir Luxury Aviation & Live MySQL Web Portal
-echo   URL      : http://localhost:3000
-echo   Database : MySQL 8.0 (endure_air_db)
-echo ==================================================================
-start "" "http://localhost:3000"
+echo ==============================================================================
+echo  Launching EndureAir 3D Web Portal on http://localhost:3000
+echo ==============================================================================
 node server.js
-pause

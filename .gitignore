@@ -10,8 +10,6 @@ wal.log
 engine_state.dat
 database_state.txt
 database_state.sql
-team_commits/
-team_commits_phase3/
 
 # Dependencies & Archives
 node_modules/

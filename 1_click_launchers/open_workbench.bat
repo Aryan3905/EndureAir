@@ -1,3 +1,0 @@
-@echo off
-echo Launching MySQL Workbench 8.0...
-start "" "C:\Program Files\MySQL\MySQL Workbench 8.0\MySQLWorkbench.exe"

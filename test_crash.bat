@@ -1,6 +1,4 @@
 @echo off
-cd /d "%~dp0"
-if not exist "server.js" cd /d "%~dp0.."
 REM ============================================================================
 REM EndureAir — Automated Subprocess Crash-Test Runner (Windows Batch)
 REM Spawns separate worker processes, triggers ungraceful exit(137) at named
