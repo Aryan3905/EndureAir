@@ -1,0 +1,47 @@
+================================================================================
+          ENDUREAIR — NIRVANA CRJ-900 3D INTERACTIVE PORTAL
+================================================================================
+
+1. INSTANT ONE-CLICK LAUNCH (NO INSTALLATION NEEDED):
+   - Double-click `run_ui.bat`
+   - OR open terminal in this folder and run:
+       node server.js
+   - Open your browser to: http://localhost:3000
+   * Note: The server uses Node.js standard libraries and serves the compiled
+     production build from `dist/` automatically.
+
+2. ADMIN DASHBOARD CREDENTIALS:
+   - Click "ADMIN" on the top right of the website
+   - Username: admin
+   - Password: admin123
+
+3. EDITING / DEVELOPING THE FRONTEND (OPTIONAL):
+   - Make sure you have Node.js 18+ installed
+   - Install dependencies:
+       npm install
+   - Start Vite development server:
+       npm run dev
+   - To build for production after changes:
+       npm run build
+
+4. MYSQL DATABASE SYNC (OPTIONAL):
+   - The portal connects to local MySQL 8.0:
+     * User: root
+     * Password: yash1906 (can be changed in server.js line 13)
+     * Database: endure_air_db
+   - To import the database schema:
+     * Open MySQL Workbench or CLI and run `schema.sql`
+   - Fallback mode: If MySQL is offline, the server automatically uses an
+     in-memory 30-seat dataset so the website never crashes.
+
+5. C++ OS & DBMS ENGINE FILES:
+   - `aryan_os.cpp` & `aryan_os.h`      : OS Process & Memory Management
+   - `bijendra_dbms.cpp` & `bijendra_dbms.h` : DBMS Transaction, WAL & Reconciliation
+   - `yash_app.cpp`                    : Application Gateway & Flight Dispatcher
+   - To compile the C++ engine:
+       build.bat
+
+6. INCLUDED PROJECT MASTER DOCUMENTATION:
+   - `EndureAir_Project_Master_Report.pdf`
+   - `EndureAir_Code_and_SQL_Reference_Navigator.pdf`
+================================================================================
