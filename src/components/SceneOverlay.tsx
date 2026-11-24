@@ -602,16 +602,17 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                               <button
                                 key={num}
                                 type="button"
+                                disabled={isBooked}
                                 onClick={() => {
                                   onSelectSeat(num);
                                   setBookingStatus({ type: 'idle', message: '' });
                                 }}
-                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                className={`relative p-2 rounded-[8px] border text-left btn-smooth flex flex-col justify-between h-[60px] transition-all ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03] cursor-pointer'
                                     : isBooked
-                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
-                                    : 'bg-[#101b2b] hover:bg-[#16273e] border-[#d4af37]/45 text-[#f3e5ab]'
+                                    ? 'bg-rose-950/40 border-rose-500/30 text-rose-300/80 cursor-not-allowed opacity-80'
+                                    : 'bg-[#101b2b] hover:bg-[#16273e] border-[#d4af37]/45 text-[#f3e5ab] cursor-pointer'
                                 }`}
                               >
                                 <div className="flex items-center justify-between w-full">
@@ -620,6 +621,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
                                       isSelected
                                         ? 'bg-[#060b13] text-[#d4af37]'
+                                        : isBooked
+                                        ? 'bg-rose-950 text-rose-400 border border-rose-800/40'
                                         : seatType === 'Window'
                                         ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
                                         : seatType === 'Aisle'
@@ -630,13 +633,16 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
                                   </span>
                                 </div>
-                                <div className="flex items-baseline justify-between w-full mt-1">
-                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
-                                    ₹{s.price.toLocaleString('en-IN')}
-                                  </span>
-                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
-                                    {isBooked ? 'RESV' : 'OPEN'}
-                                  </span>
+                                <div className="w-full text-center mt-1">
+                                  {isBooked ? (
+                                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-500/30 inline-block">
+                                      BOOKED
+                                    </span>
+                                  ) : (
+                                    <span className={`text-xs font-mono font-bold tracking-tight block ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                      ₹{s.price.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
                                 </div>
                               </button>
                             );
@@ -661,16 +667,17 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                               <button
                                 key={num}
                                 type="button"
+                                disabled={isBooked}
                                 onClick={() => {
                                   onSelectSeat(num);
                                   setBookingStatus({ type: 'idle', message: '' });
                                 }}
-                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                className={`relative p-2 rounded-[8px] border text-left btn-smooth flex flex-col justify-between h-[60px] transition-all ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03] cursor-pointer'
                                     : isBooked
-                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
-                                    : 'bg-[#101b2b] hover:bg-[#16273e] border-[#d4af37]/45 text-[#f3e5ab]'
+                                    ? 'bg-rose-950/40 border-rose-500/30 text-rose-300/80 cursor-not-allowed opacity-80'
+                                    : 'bg-[#101b2b] hover:bg-[#16273e] border-[#d4af37]/45 text-[#f3e5ab] cursor-pointer'
                                 }`}
                               >
                                 <div className="flex items-center justify-between w-full">
@@ -679,6 +686,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
                                       isSelected
                                         ? 'bg-[#060b13] text-[#d4af37]'
+                                        : isBooked
+                                        ? 'bg-rose-950 text-rose-400 border border-rose-800/40'
                                         : seatType === 'Window'
                                         ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
                                         : seatType === 'Aisle'
@@ -689,13 +698,16 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
                                   </span>
                                 </div>
-                                <div className="flex items-baseline justify-between w-full mt-1">
-                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
-                                    ₹{s.price.toLocaleString('en-IN')}
-                                  </span>
-                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
-                                    {isBooked ? 'RESV' : 'OPEN'}
-                                  </span>
+                                <div className="w-full text-center mt-1">
+                                  {isBooked ? (
+                                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-500/30 inline-block">
+                                      BOOKED
+                                    </span>
+                                  ) : (
+                                    <span className={`text-xs font-mono font-bold tracking-tight block ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                      ₹{s.price.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
                                 </div>
                               </button>
                             );
@@ -731,16 +743,17 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                               <button
                                 key={num}
                                 type="button"
+                                disabled={isBooked}
                                 onClick={() => {
                                   onSelectSeat(num);
                                   setBookingStatus({ type: 'idle', message: '' });
                                 }}
-                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                className={`relative p-2 rounded-[8px] border text-left btn-smooth flex flex-col justify-between h-[60px] transition-all ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03] cursor-pointer'
                                     : isBooked
-                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
-                                    : 'bg-[#09121f] hover:bg-[#122033] border-[#304766]/50 text-[#cbd5e1]'
+                                    ? 'bg-rose-950/40 border-rose-500/30 text-rose-300/80 cursor-not-allowed opacity-80'
+                                    : 'bg-[#09121f] hover:bg-[#122033] border-[#304766]/50 text-[#cbd5e1] cursor-pointer'
                                 }`}
                               >
                                 <div className="flex items-center justify-between w-full">
@@ -749,6 +762,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
                                       isSelected
                                         ? 'bg-[#060b13] text-[#d4af37]'
+                                        : isBooked
+                                        ? 'bg-rose-950 text-rose-400 border border-rose-800/40'
                                         : seatType === 'Window'
                                         ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
                                         : seatType === 'Aisle'
@@ -759,13 +774,16 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
                                   </span>
                                 </div>
-                                <div className="flex items-baseline justify-between w-full mt-1">
-                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
-                                    ₹{s.price.toLocaleString('en-IN')}
-                                  </span>
-                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
-                                    {isBooked ? 'RESV' : 'OPEN'}
-                                  </span>
+                                <div className="w-full text-center mt-1">
+                                  {isBooked ? (
+                                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-500/30 inline-block">
+                                      BOOKED
+                                    </span>
+                                  ) : (
+                                    <span className={`text-xs font-mono font-bold tracking-tight block ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                      ₹{s.price.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
                                 </div>
                               </button>
                             );
@@ -790,16 +808,17 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                               <button
                                 key={num}
                                 type="button"
+                                disabled={isBooked}
                                 onClick={() => {
                                   onSelectSeat(num);
                                   setBookingStatus({ type: 'idle', message: '' });
                                 }}
-                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                className={`relative p-2 rounded-[8px] border text-left btn-smooth flex flex-col justify-between h-[60px] transition-all ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03] cursor-pointer'
                                     : isBooked
-                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
-                                    : 'bg-[#09121f] hover:bg-[#122033] border-[#304766]/50 text-[#cbd5e1]'
+                                    ? 'bg-rose-950/40 border-rose-500/30 text-rose-300/80 cursor-not-allowed opacity-80'
+                                    : 'bg-[#09121f] hover:bg-[#122033] border-[#304766]/50 text-[#cbd5e1] cursor-pointer'
                                 }`}
                               >
                                 <div className="flex items-center justify-between w-full">
@@ -808,6 +827,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
                                       isSelected
                                         ? 'bg-[#060b13] text-[#d4af37]'
+                                        : isBooked
+                                        ? 'bg-rose-950 text-rose-400 border border-rose-800/40'
                                         : seatType === 'Window'
                                         ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
                                         : seatType === 'Aisle'
@@ -818,13 +839,16 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                     {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
                                   </span>
                                 </div>
-                                <div className="flex items-baseline justify-between w-full mt-1">
-                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
-                                    ₹{s.price.toLocaleString('en-IN')}
-                                  </span>
-                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
-                                    {isBooked ? 'RESV' : 'OPEN'}
-                                  </span>
+                                <div className="w-full text-center mt-1">
+                                  {isBooked ? (
+                                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-500/30 inline-block">
+                                      BOOKED
+                                    </span>
+                                  ) : (
+                                    <span className={`text-xs font-mono font-bold tracking-tight block ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                      ₹{s.price.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
                                 </div>
                               </button>
                             );
@@ -932,10 +956,10 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           onChange={(e) => setBaggageTier(e.target.value)}
                           className="w-full px-3 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/60 text-xs text-[#f8fafc] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono cursor-pointer"
                         >
-                          <option value="CHECKIN_15KG">Standard Check-In (15 kg + 7 kg Cabin) — Included</option>
-                          <option value="CABIN_7KG">Cabin Handbag Only (7 kg) — Light Travel</option>
-                          <option value="PRIORITY_25KG">Priority Baggage (25 kg + 7 kg Cabin) — Included</option>
-                          <option value="EXCESS_32KG">Executive Heavy Baggage (32 kg Allowance) — Included</option>
+                          <option value="CHECKIN_15KG">Standard Check-In (15 kg + 7 kg Cabin)</option>
+                          <option value="CABIN_7KG">Cabin Handbag Only (7 kg Bag)</option>
+                          <option value="PRIORITY_25KG">Priority Baggage (25 kg + 7 kg Cabin)</option>
+                          <option value="EXCESS_32KG">Executive Heavy Cargo (32 kg)</option>
                         </select>
                       </div>
 
