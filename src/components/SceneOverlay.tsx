@@ -34,6 +34,117 @@ interface SceneOverlayProps {
   onClearExternalModal?: () => void;
 }
 
+export const getSeatType = (seatNum: string | number): 'Window' | 'Aisle' | 'Middle' => {
+  const n = Number(seatNum);
+  const col = ((n - 1) % 6) + 1;
+  if (col === 1 || col === 6) return 'Window';
+  if (col === 3 || col === 4) return 'Aisle';
+  return 'Middle';
+};
+
+interface AdminLoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const AdminLoginModal: React.FC<AdminLoginModalProps> = React.memo(
+  ({ isOpen, onClose, onSuccess }) => {
+    const [adminUser, setAdminUser] = useState('');
+    const [adminPass, setAdminPass] = useState('');
+    const [adminError, setAdminError] = useState('');
+
+    if (!isOpen) return null;
+
+    const handleAdminLoginSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (adminUser.trim() === 'admin' && adminPass === 'admin123') {
+        setAdminError('');
+        onSuccess();
+      } else {
+        setAdminError(
+          'Invalid credentials. Please enter username: admin / password: admin123'
+        );
+      }
+    };
+
+    return (
+      <div
+        data-lenis-prevent
+        className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md modal-backdrop-animate"
+      >
+        <div className="w-full max-w-md rounded-[12px] bg-[#0c1524] border border-[#304766]/60 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-7 text-[#f8fafc] modal-card-animate">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+              <span className="text-xs font-mono text-[#d4af37] font-semibold tracking-wider uppercase">
+                Security Gate
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-7 h-7 rounded-full bg-[#142338]/60 hover:bg-[#1a2d45] flex items-center justify-center text-xs text-[#94a3b8] hover:text-white cursor-pointer btn-smooth"
+            >
+              ✕
+            </button>
+          </div>
+
+          <h2 className="text-2xl font-light tracking-tight mb-1 text-[#f8fafc]">
+            Admin Authentication
+          </h2>
+          <p className="text-xs text-[#94a3b8] mb-6">
+            Enter administrator credentials to access live MySQL 8.0 cabin controls.
+          </p>
+
+          <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#94a3b8] mb-1.5 font-medium">
+                Username
+              </label>
+              <input
+                type="text"
+                required
+                autoFocus
+                value={adminUser}
+                onChange={(e) => setAdminUser(e.target.value)}
+                placeholder="Administrator ID (admin)"
+                className="w-full px-4 py-3 rounded-[6px] bg-[#060b13]/90 border border-[#304766]/60 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#94a3b8] mb-1.5 font-medium">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={adminPass}
+                onChange={(e) => setAdminPass(e.target.value)}
+                placeholder="•••••••• (admin123)"
+                className="w-full px-4 py-3 rounded-[6px] bg-[#060b13]/90 border border-[#304766]/60 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
+              />
+            </div>
+
+            {adminError && (
+              <div className="p-3.5 rounded-[6px] bg-rose-950/80 border border-rose-500/50 text-xs font-mono text-rose-200 animate-fadeIn">
+                {adminError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-[6px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-xs font-mono font-bold uppercase tracking-widest text-[#060b13] cursor-pointer shadow-lg shadow-[#d4af37]/25 btn-smooth mt-2"
+            >
+              Unlock Admin Console ›
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+);
+
 export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
   ({
     activeScene,
@@ -60,9 +171,6 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
       message: string;
     }>({ type: 'idle', message: '' });
 
-    const [adminUser, setAdminUser] = useState('');
-    const [adminPass, setAdminPass] = useState('');
-    const [adminError, setAdminError] = useState('');
     const [adminActionMsg, setAdminActionMsg] = useState('');
 
     useEffect(() => {
@@ -86,22 +194,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
     const bookedCount = seats.length - availableCount;
 
     const handleOpenAdmin = () => {
-      setAdminUser('');
-      setAdminPass('');
-      setAdminError('');
       setActiveModal('adminLogin');
-    };
-
-    const handleAdminLoginSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (adminUser.trim() === 'admin' && adminPass === 'admin123') {
-        setAdminError('');
-        setActiveModal('adminPanel');
-      } else {
-        setAdminError(
-          'Invalid credentials. Please verify your administrator username and password.'
-        );
-      }
     };
 
     const handleBookSeat = async (e: React.FormEvent) => {
@@ -157,23 +250,40 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
     };
 
     const handleCancelSeat = async (seatNum: string) => {
+      const targetNum = String(seatNum).padStart(2, '0');
+      // Instant optimistic UI update for buttery-smooth responsiveness
+      const updatedSeats = seats.map((s) =>
+        String(s.seat_number).padStart(2, '0') === targetNum
+          ? { ...s, is_booked: 0, status: 'AVAILABLE', passenger_name: null }
+          : s
+      );
+      const updatedBookings = bookings.filter(
+        (b) => String(b.seat_number).padStart(2, '0') !== targetNum
+      );
+      onDirectDataUpdate(updatedSeats, updatedBookings);
+      setAdminActionMsg(`Releasing Seat #${targetNum} in MySQL...`);
+
       try {
         const res = await fetch('/api/cancel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ seat_number: seatNum }),
+          body: JSON.stringify({ seat_number: Number(seatNum) }),
         });
         const data = await res.json();
         if (res.ok) {
-          setAdminActionMsg(`Released Seat #${seatNum} in MySQL.`);
+          setAdminActionMsg(`Seat #${targetNum} successfully released to AVAILABLE in MySQL.`);
           if (data.seats && data.bookings) {
             onDirectDataUpdate(data.seats, data.bookings);
           } else {
             await onRefreshData();
           }
+        } else {
+          setAdminActionMsg(data.error || 'Failed to release seat in database.');
+          await onRefreshData();
         }
       } catch {
-        setAdminActionMsg('Failed to release seat.');
+        setAdminActionMsg('Network error while releasing seat.');
+        await onRefreshData();
       }
     };
 
@@ -221,13 +331,13 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
           {/* Right Grouped Segmented Nav Box + Split Gold/Steel Action Box */}
           <div className="flex items-center gap-3">
             {/* Segmented Navigation Box in Deep Steel Blue Glass */}
-            <nav className="hidden md:flex items-center rounded-[5px] border border-[#304766]/50 bg-[#0b1422]/90 divide-x divide-[#304766]/40 overflow-hidden shadow-lg backdrop-blur-md">
+            <nav className="hidden md:flex items-center rounded-[6px] border border-[#304766]/50 bg-[#0b1422]/90 divide-x divide-[#304766]/40 overflow-hidden shadow-lg backdrop-blur-md">
               <button
                 onClick={() => {
                   setActiveModal('none');
                   onScrollToScene(1);
                 }}
-                className={`px-4 py-2 font-mono text-xs tracking-wide transition-colors cursor-pointer ${
+                className={`px-4 py-2 font-mono text-xs tracking-wide cursor-pointer btn-smooth ${
                   activeScene <= 2 && activeModal === 'none'
                     ? 'text-[#f3e5ab] bg-[#1a2d45] font-semibold border-b border-[#d4af37]/70'
                     : 'text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60'
@@ -238,23 +348,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               <button
                 onClick={() => {
                   setActiveModal('none');
-                  onScrollToScene(3);
-                }}
-                className={`px-4 py-2 font-mono text-xs tracking-wide transition-colors cursor-pointer ${
-                  (activeScene === 3 || activeScene === 4) &&
-                  activeModal === 'none'
-                    ? 'text-[#f3e5ab] bg-[#1a2d45] font-semibold border-b border-[#d4af37]/70'
-                    : 'text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60'
-                }`}
-              >
-                Engineering
-              </button>
-              <button
-                onClick={() => {
-                  setActiveModal('none');
                   onScrollToScene(5);
                 }}
-                className={`px-4 py-2 font-mono text-xs tracking-wide transition-colors cursor-pointer ${
+                className={`px-4 py-2 font-mono text-xs tracking-wide cursor-pointer btn-smooth ${
                   activeScene === 5 && activeModal === 'none'
                     ? 'text-[#f3e5ab] bg-[#1a2d45] font-semibold border-b border-[#d4af37]/70'
                     : 'text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60'
@@ -264,7 +360,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               </button>
               <button
                 onClick={() => setActiveModal('passes')}
-                className={`px-4 py-2 font-mono text-xs tracking-wide transition-colors cursor-pointer ${
+                className={`px-4 py-2 font-mono text-xs tracking-wide cursor-pointer btn-smooth ${
                   activeModal === 'passes'
                     ? 'text-[#f3e5ab] bg-[#1a2d45] font-semibold border-b border-[#d4af37]/70'
                     : 'text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60'
@@ -272,37 +368,27 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               >
                 Passes ({bookings.length})
               </button>
-              <a
-                href="/EndureAir_Phase3_Comprehensive_PBL_Report.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Download Phase 3 Comprehensive PBL Master Report (PDF)"
-                className="px-4 py-2 font-mono text-xs tracking-wide text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60 transition-colors cursor-pointer flex items-center gap-1.5"
-              >
-                <span>Report</span>
-                <span className="text-[10px] px-1 py-0.2 bg-[#d4af37]/20 border border-[#d4af37]/40 rounded font-semibold text-[#f3e5ab]">PDF</span>
-              </a>
               <button
                 onClick={onToggleTheme}
                 title="Toggle Atmosphere Mode"
-                className="px-3 py-2 font-mono text-xs text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60 transition-colors cursor-pointer"
+                className="px-3 py-2 font-mono text-xs text-[#cbd5e1] hover:text-[#f8fafc] hover:bg-[#142338]/60 cursor-pointer btn-smooth"
               >
                 {theme === 'dark' ? 'Day' : 'Night'}
               </button>
             </nav>
 
             {/* Split Dual CTA Box (Antique Gold + Steel Blue) */}
-            <div className="inline-flex items-center rounded-[5px] border border-[#d4af37]/40 overflow-hidden shadow-[0_6px_25px_rgba(212,175,55,0.2)]">
+            <div className="inline-flex items-center rounded-[6px] border border-[#d4af37]/40 overflow-hidden shadow-[0_6px_25px_rgba(212,175,55,0.2)]">
               <button
                 onClick={() => setActiveModal('reserve')}
-                className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] hover:brightness-110 text-[#060b13] font-mono text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] font-mono text-xs font-semibold tracking-wide cursor-pointer flex items-center gap-1.5 btn-smooth"
               >
                 <span>Reserve</span>
                 <span className="text-[10px]">›</span>
               </button>
               <button
                 onClick={handleOpenAdmin}
-                className="px-4 py-2 bg-[#0c1624]/90 hover:bg-[#142338] text-[#f8fafc] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer border-l border-[#d4af37]/30"
+                className="px-4 py-2 bg-[#0c1624]/90 hover:bg-[#142338] text-[#f8fafc] font-mono text-xs uppercase tracking-wider cursor-pointer border-l border-[#d4af37]/30 btn-smooth"
               >
                 ADMIN
               </button>
@@ -369,7 +455,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                         #{selectedSeatNumber}
                       </span>{' '}
                       <span className="text-[#94a3b8]">
-                        ({selectedSeatObj.seat_class} • ${selectedSeatObj.price})
+                        ({selectedSeatObj.seat_class} • {selectedSeatObj.seat_type || getSeatType(selectedSeatNumber || '1')} • ₹{selectedSeatObj.price.toLocaleString('en-IN')})
                       </span>{' '}
                       —{' '}
                       <span
@@ -391,10 +477,10 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               </div>
             </div>
 
-            <div className="inline-flex items-center rounded-[5px] border border-[#d4af37]/40 overflow-hidden shrink-0 shadow-lg">
+            <div className="inline-flex items-center rounded-[6px] border border-[#d4af37]/40 overflow-hidden shrink-0 shadow-lg">
               <button
                 onClick={() => setActiveModal('reserve')}
-                className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] hover:brightness-110 text-[#060b13] font-mono text-xs font-semibold tracking-wide cursor-pointer whitespace-nowrap transition-all"
+                className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] font-mono text-xs font-semibold tracking-wide cursor-pointer whitespace-nowrap btn-smooth"
               >
                 {selectedSeatObj && !selectedSeatObj.is_booked
                   ? `Book Seat #${selectedSeatNumber} ›`
@@ -402,7 +488,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               </button>
               <button
                 onClick={() => setActiveModal('passes')}
-                className="px-3.5 py-2 bg-[#0c1624] hover:bg-[#152438] text-[#f8fafc] font-mono text-xs tracking-wide cursor-pointer border-l border-[#d4af37]/30 whitespace-nowrap transition-colors"
+                className="px-3.5 py-2 bg-[#0c1624] hover:bg-[#152438] text-[#f8fafc] font-mono text-xs tracking-wide cursor-pointer border-l border-[#d4af37]/30 whitespace-nowrap btn-smooth"
               >
                 Passes ({bookings.length})
               </button>
@@ -416,9 +502,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
         {activeModal === 'reserve' && (
           <div
             data-lenis-prevent
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md modal-backdrop-animate"
           >
-            <div className="w-full max-w-4xl rounded-[10px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[90vh] overflow-y-auto">
+            <div className="w-full max-w-4xl rounded-[12px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[90vh] overflow-y-auto modal-card-animate">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#304766]/40">
                 <div>
                   <div className="text-xs font-mono text-[#d4af37] mb-1 font-medium">
@@ -431,7 +517,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                 </div>
                 <button
                   onClick={() => setActiveModal('none')}
-                  className="px-3.5 py-1.5 rounded-[4px] bg-[#142338]/80 hover:bg-[#1c324e] border border-[#304766]/60 text-xs font-mono uppercase text-[#cbd5e1] hover:text-white cursor-pointer transition-colors"
+                  className="px-3.5 py-1.5 rounded-[4px] bg-[#142338]/80 hover:bg-[#1c324e] border border-[#304766]/60 text-xs font-mono uppercase text-[#cbd5e1] hover:text-white cursor-pointer btn-smooth"
                 >
                   ✕ Close
                 </button>
@@ -463,7 +549,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                       const num = String(s.seat_number).padStart(2, '0');
                       const isBooked = Boolean(s.is_booked);
                       const isSelected = selectedSeatNumber === num;
-                      const isBusiness = Number(s.seat_number) <= 9;
+                      const isBusiness = Number(s.seat_number) <= 12;
+                      const seatType = s.seat_type || getSeatType(num);
+                      const isWindow = seatType === 'Window';
                       return (
                         <button
                           key={num}
@@ -471,7 +559,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                             onSelectSeat(num);
                             setBookingStatus({ type: 'idle', message: '' });
                           }}
-                          className={`p-2 rounded-[5px] border text-left transition-all cursor-pointer ${
+                          className={`p-2 rounded-[5px] border text-left cursor-pointer btn-smooth ${
                             isSelected
                               ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] font-bold shadow-md shadow-[#d4af37]/30 scale-[1.02]'
                               : isBooked
@@ -483,14 +571,19 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                         >
                           <div className="flex items-center justify-between text-[11px] font-mono">
                             <span className="font-bold">#{num}</span>
-                            <span className="text-[9px] opacity-80">
-                              ${s.price}
+                            <span className="text-[9px] opacity-90 font-medium">
+                              ₹{s.price.toLocaleString('en-IN')}
                             </span>
                           </div>
-                          <div className="text-[9px] font-mono truncate opacity-80 mt-0.5">
-                            {isBooked
-                              ? s.passenger_name || 'Booked'
-                              : s.seat_class}
+                          <div className="flex items-center justify-between text-[9px] font-mono truncate opacity-85 mt-0.5">
+                            <span>
+                              {isBooked
+                                ? (s.passenger_name ? s.passenger_name.split(' ')[0] : 'Booked')
+                                : s.seat_class}
+                            </span>
+                            <span className={`text-[8px] font-bold px-1 rounded ${isWindow ? 'bg-[#d4af37]/25 text-[#f3e5ab]' : 'bg-[#1e293b] text-[#94a3b8]'}`}>
+                              {seatType[0]}
+                            </span>
                           </div>
                         </button>
                       );
@@ -506,11 +599,15 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
 
                     {selectedSeatObj ? (
                       <div className="mb-4 p-3.5 rounded-[6px] bg-[#0c1524] border border-[#304766]/50">
-                        <div className="text-base font-mono font-medium text-[#f8fafc]">
-                          Seat <span className="text-[#f3e5ab]">#{selectedSeatNumber}</span> — {selectedSeatObj.seat_class}
+                        <div className="text-base font-mono font-medium text-[#f8fafc] flex items-center justify-between">
+                          <span>Seat <span className="text-[#f3e5ab]">#{selectedSeatNumber}</span> — {selectedSeatObj.seat_class}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] bg-[#d4af37]/20 text-[#f3e5ab] border border-[#d4af37]/40 font-mono font-semibold">
+                            {selectedSeatObj.seat_type || getSeatType(selectedSeatNumber || '1')} Seat
+                          </span>
                         </div>
-                        <div className="text-xs font-mono text-[#94a3b8] mt-1">
-                          Fare: <span className="text-[#f8fafc] font-bold">${selectedSeatObj.price}</span>
+                        <div className="text-xs font-mono text-[#94a3b8] mt-1.5 flex items-center justify-between">
+                          <span>Fare: <span className="text-[#f8fafc] font-bold text-sm">₹{selectedSeatObj.price.toLocaleString('en-IN')}</span></span>
+                          <span className="text-[10px] text-[#94a3b8]">All Taxes & Charges Incl.</span>
                         </div>
                         <div className="text-xs font-mono mt-1">
                           Status:{' '}
@@ -536,7 +633,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           value={passengerName}
                           onChange={(e) => setPassengerName(e.target.value)}
                           placeholder="e.g. Capt. Arjun Mehta"
-                          className="w-full px-3.5 py-2.5 rounded-[5px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37]"
+                          className="w-full px-4 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
                         />
                       </div>
 
@@ -548,8 +645,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           type="email"
                           value={passengerEmail}
                           onChange={(e) => setPassengerEmail(e.target.value)}
-                          placeholder="arjun@endureair.aero"
-                          className="w-full px-3.5 py-2.5 rounded-[5px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37]"
+                          placeholder="arjun@endureair.in"
+                          className="w-full px-4 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
                         />
                       </div>
 
@@ -560,7 +657,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           Boolean(selectedSeatObj.is_booked) ||
                           bookingStatus.type === 'loading'
                         }
-                        className="w-full py-3 rounded-[5px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] hover:brightness-105 disabled:opacity-40 text-xs font-mono font-bold uppercase tracking-widest text-[#060b13] cursor-pointer transition-all shadow-lg shadow-[#d4af37]/20"
+                        className="w-full py-3 rounded-[6px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] disabled:opacity-40 text-xs font-mono font-bold uppercase tracking-widest text-[#060b13] cursor-pointer shadow-lg shadow-[#d4af37]/20 btn-smooth"
                       >
                         {bookingStatus.type === 'loading'
                           ? 'Booking in MySQL...'
@@ -599,9 +696,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
         {activeModal === 'passes' && (
           <div
             data-lenis-prevent
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md modal-backdrop-animate"
           >
-            <div className="w-full max-w-3xl rounded-[10px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[88vh] overflow-y-auto">
+            <div className="w-full max-w-3xl rounded-[12px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[88vh] overflow-y-auto modal-card-animate">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#304766]/40">
                 <div>
                   <div className="text-xs font-mono text-[#d4af37] mb-1 font-medium">
@@ -614,7 +711,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                 </div>
                 <button
                   onClick={() => setActiveModal('none')}
-                  className="px-3.5 py-1.5 rounded-[4px] bg-[#142338]/80 hover:bg-[#1c324e] border border-[#304766]/60 text-xs font-mono uppercase text-[#cbd5e1] hover:text-white cursor-pointer transition-colors"
+                  className="px-3.5 py-1.5 rounded-[4px] bg-[#142338]/80 hover:bg-[#1c324e] border border-[#304766]/60 text-xs font-mono uppercase text-[#cbd5e1] hover:text-white cursor-pointer btn-smooth"
                 >
                   ✕ Close
                 </button>
@@ -642,22 +739,27 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                             {b.passenger_name}
                           </span>
                           <span className="text-xs font-mono text-[#f3e5ab]">
-                            ({b.seat_class})
+                            ({b.seat_class} • {b.seat_type || getSeatType(b.seat_number)})
                           </span>
                         </div>
                         <div className="text-xs text-[#94a3b8] mt-1 font-mono">
-                          FLIGHT EA-900 • NIRVANA CABIN • FARE ${b.price}
+                          FLIGHT EA-900 • NIRVANA CABIN • FARE ₹{b.price.toLocaleString('en-IN')}
                         </div>
                       </div>
 
-                      <button
-                        onClick={() =>
-                          handleCancelSeat(String(b.seat_number).padStart(2, '0'))
-                        }
-                        className="px-3 py-1.5 rounded-[4px] bg-[#142338]/60 hover:bg-rose-500/20 border border-[#304766]/50 hover:border-rose-500/40 text-[#cbd5e1] hover:text-rose-200 text-xs font-mono uppercase cursor-pointer transition-colors relative z-20"
-                      >
-                        Cancel Pass
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-[4px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 font-mono text-[11px] font-medium flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          CONFIRMED
+                        </span>
+                        <button
+                          onClick={() => window.print()}
+                          title="Print passenger boarding pass"
+                          className="px-3 py-1.5 rounded-[4px] bg-[#142338]/80 hover:bg-[#1f3757] border border-[#304766]/60 text-[#cbd5e1] hover:text-white text-xs font-mono uppercase cursor-pointer btn-smooth"
+                        >
+                          Print Pass
+                        </button>
+                      </div>
                     </TiltedCard>
                   ))}
                 </div>
@@ -669,78 +771,11 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
         {/* =====================================================================
             DEDICATED MODAL 3: PASSWORD-PROTECTED ADMIN LOGIN (admin / admin123)
         ===================================================================== */}
-        {activeModal === 'adminLogin' && (
-          <div
-            data-lenis-prevent
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md"
-          >
-            <div className="w-full max-w-md rounded-[10px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-7 text-[#f8fafc]">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-mono text-[#d4af37] font-medium">
-                  • Security Gate
-                </div>
-                <button
-                  onClick={() => setActiveModal('none')}
-                  className="text-xs text-[#94a3b8] hover:text-white cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <h2 className="text-2xl font-normal tracking-tight mb-1 text-[#f8fafc]">
-                Admin Authentication
-              </h2>
-              <p className="text-xs text-[#94a3b8] mb-6">
-                Enter administrator credentials to access live MySQL 8.0 cabin
-                controls.
-              </p>
-
-              <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    value={adminUser}
-                    onChange={(e) => setAdminUser(e.target.value)}
-                    placeholder="Administrator ID"
-                    className="w-full px-3.5 py-2.5 rounded-[5px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={adminPass}
-                    onChange={(e) => setAdminPass(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-3.5 py-2.5 rounded-[5px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37]"
-                  />
-                </div>
-
-                {adminError && (
-                  <div className="p-3 rounded-[5px] bg-rose-950/80 border border-rose-500/50 text-xs font-mono text-rose-200">
-                    {adminError}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="w-full py-3 rounded-[5px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] hover:brightness-105 text-xs font-mono font-bold uppercase tracking-widest text-[#060b13] cursor-pointer transition-all shadow-lg shadow-[#d4af37]/25"
-                >
-                  Unlock Admin Console ›
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+        <AdminLoginModal
+          isOpen={activeModal === 'adminLogin'}
+          onClose={() => setActiveModal('none')}
+          onSuccess={() => setActiveModal('adminPanel')}
+        />
 
         {/* =====================================================================
             DEDICATED MODAL 4: UNLOCKED ADMIN CONSOLE
@@ -748,9 +783,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
         {activeModal === 'adminPanel' && (
           <div
             data-lenis-prevent
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md modal-backdrop-animate"
           >
-            <div className="w-full max-w-4xl rounded-[10px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[90vh] overflow-y-auto">
+            <div className="w-full max-w-4xl rounded-[12px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[90vh] overflow-y-auto modal-card-animate">
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-[#304766]/40">
                 <div>
                   <div className="text-xs font-mono text-[#f3e5ab] mb-1 font-medium">
@@ -767,13 +802,13 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                 <div className="flex items-center gap-2.5">
                   <button
                     onClick={handleResetAllSeats}
-                    className="px-3.5 py-2 rounded-[5px] bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-xs font-mono uppercase text-rose-200 cursor-pointer transition-colors"
+                    className="px-3.5 py-2 rounded-[5px] bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-xs font-mono uppercase text-rose-200 cursor-pointer btn-smooth"
                   >
                     Reset All 30 Seats
                   </button>
                   <button
                     onClick={() => setActiveModal('none')}
-                    className="px-3.5 py-2 rounded-[5px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] hover:brightness-110 text-xs font-mono uppercase font-bold cursor-pointer transition-all shadow-md shadow-[#d4af37]/20"
+                    className="px-3.5 py-2 rounded-[5px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] hover:brightness-110 text-xs font-mono uppercase font-bold cursor-pointer shadow-md shadow-[#d4af37]/20 btn-smooth"
                   >
                     Lock & Exit ›
                   </button>
@@ -781,7 +816,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
               </div>
 
               {adminActionMsg && (
-                <div className="mb-4 p-3 rounded-[5px] bg-[#142338]/80 border border-[#304766]/60 text-xs text-[#cbd5e1] font-mono">
+                <div className="mb-4 p-3 rounded-[6px] bg-[#142338]/80 border border-[#304766]/60 text-xs text-[#cbd5e1] font-mono animate-fadeIn">
                   {adminActionMsg}
                 </div>
               )}
@@ -819,7 +854,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                     <tr className="border-b border-[#304766]/40 text-[10px] font-mono uppercase text-[#94a3b8]">
                       <th className="py-3 px-4">Seat</th>
                       <th className="py-3 px-4">Class</th>
-                      <th className="py-3 px-4">Fare</th>
+                      <th className="py-3 px-4">Type</th>
+                      <th className="py-3 px-4">Fare (₹)</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4">Passenger</th>
                       <th className="py-3 px-4 text-right">Action</th>
@@ -829,7 +865,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                     {seats.map((s) => {
                       const num = String(s.seat_number).padStart(2, '0');
                       const isBooked = Boolean(s.is_booked);
-                      const isBusiness = Number(s.seat_number) <= 9;
+                      const isBusiness = Number(s.seat_number) <= 12;
+                      const seatType = s.seat_type || getSeatType(num);
                       return (
                         <tr
                           key={num}
@@ -841,7 +878,20 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           <td className={`py-2.5 px-4 font-mono ${isBusiness ? 'text-[#f3e5ab]' : 'text-[#cbd5e1]'}`}>
                             {s.seat_class}
                           </td>
-                          <td className="py-2.5 px-4 font-mono text-[#f8fafc]">${s.price}</td>
+                          <td className="py-2.5 px-4 font-mono">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                              seatType === 'Window'
+                                ? 'bg-[#d4af37]/20 text-[#f3e5ab] border-[#d4af37]/40'
+                                : seatType === 'Aisle'
+                                ? 'bg-sky-500/20 text-sky-200 border-sky-500/40'
+                                : 'bg-slate-700/40 text-slate-300 border-slate-600/40'
+                            }`}>
+                              {seatType}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-4 font-mono font-medium text-[#f8fafc]">
+                            ₹{s.price.toLocaleString('en-IN')}
+                          </td>
                           <td className="py-2.5 px-4">
                             {isBooked ? (
                               <span className="px-2 py-0.5 rounded-[3px] bg-rose-500/20 text-rose-300 font-mono text-[10px] border border-rose-500/30">
@@ -860,7 +910,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                             {isBooked ? (
                               <button
                                 onClick={() => handleCancelSeat(num)}
-                                className="px-2.5 py-1 rounded-[4px] bg-rose-500/20 hover:bg-rose-500/35 text-rose-200 font-mono text-[10px] uppercase cursor-pointer transition-colors"
+                                className="px-3 py-1 rounded-[4px] bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/40 text-rose-200 font-mono text-[10px] uppercase cursor-pointer btn-smooth"
                               >
                                 Release
                               </button>
@@ -870,7 +920,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                                   onSelectSeat(num);
                                   setActiveModal('reserve');
                                 }}
-                                className="px-2.5 py-1 rounded-[4px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] hover:brightness-110 font-mono text-[10px] uppercase font-bold cursor-pointer transition-all shadow-sm shadow-[#d4af37]/20"
+                                className="px-3 py-1 rounded-[4px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] hover:brightness-110 font-mono text-[10px] uppercase font-bold cursor-pointer shadow-sm shadow-[#d4af37]/20 btn-smooth"
                               >
                                 Assign ›
                               </button>

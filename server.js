@@ -65,6 +65,39 @@ function invalidateCabinCache() {
     cabinCache.lastFetched = 0;
 }
 
+function getSeatPricing(seatNumber) {
+    const seatNo = Number(seatNumber);
+    const col = ((seatNo - 1) % 6) + 1;
+    let seatType = 'Middle';
+    if (col === 1 || col === 6) {
+        seatType = 'Window';
+    } else if (col === 3 || col === 4) {
+        seatType = 'Aisle';
+    }
+
+    let seatClass = 'Economy';
+    let price = 4900;
+
+    if (seatNo <= 6) {
+        seatClass = 'Business';
+        if (seatType === 'Window') price = 16500;
+        else if (seatType === 'Aisle') price = 14500;
+        else price = 13000;
+    } else if (seatNo <= 12) {
+        seatClass = 'Business';
+        if (seatType === 'Window') price = 14500;
+        else if (seatType === 'Aisle') price = 13000;
+        else price = 11800;
+    } else {
+        seatClass = 'Economy';
+        if (seatType === 'Window') price = 6800;
+        else if (seatType === 'Aisle') price = 5800;
+        else price = 4900;
+    }
+
+    return { seatClass, seatType, price };
+}
+
 async function getFastCabinData(forceRefresh = false) {
     const now = Date.now();
     if (!forceRefresh && cabinCache.seats && cabinCache.bookings && (now - cabinCache.lastFetched < 15000)) {
@@ -102,24 +135,32 @@ async function getFastCabinData(forceRefresh = false) {
         ];
     }
 
-    const mappedSeats = (rawSeats || []).map(s => ({
-        id: Number(s.id),
-        seat_number: String(s.seat_number).padStart(2, '0'),
-        seat_class: Number(s.seat_number) <= 9 ? 'Business' : 'Economy',
-        price: Number(s.seat_number) <= 9 ? 1450 : 620,
-        is_booked: (s.status === 'BOOKED' || s.status === 'HELD') ? 1 : 0,
-        status: s.status,
-        passenger_name: s.passenger_name || null
-    }));
+    const mappedSeats = (rawSeats || []).map(s => {
+        const p = getSeatPricing(s.seat_number);
+        return {
+            id: Number(s.id),
+            seat_number: String(s.seat_number).padStart(2, '0'),
+            seat_class: p.seatClass,
+            seat_type: p.seatType,
+            price: p.price,
+            is_booked: (s.status === 'BOOKED' || s.status === 'HELD') ? 1 : 0,
+            status: s.status,
+            passenger_name: s.passenger_name || null
+        };
+    });
 
-    const mappedBookings = (rawBookings || []).map(b => ({
-        id: Number(b.booking_id),
-        seat_number: String(b.seat_no).padStart(2, '0'),
-        passenger_name: b.passenger_name || 'Guest Passenger',
-        seat_class: Number(b.seat_no) <= 9 ? 'Business' : 'Economy',
-        price: Number(b.seat_no) <= 9 ? 1450 : 620,
-        booked_at: b.confirmed_at || new Date().toISOString()
-    }));
+    const mappedBookings = (rawBookings || []).map(b => {
+        const p = getSeatPricing(b.seat_no);
+        return {
+            id: Number(b.booking_id),
+            seat_number: String(b.seat_no).padStart(2, '0'),
+            passenger_name: b.passenger_name || 'Guest Passenger',
+            seat_class: p.seatClass,
+            seat_type: p.seatType,
+            price: p.price,
+            booked_at: b.confirmed_at || new Date().toISOString()
+        };
+    });
 
     cabinCache = {
         seats: mappedSeats,
@@ -152,8 +193,23 @@ async function getFullDatabaseState() {
         runMySQL(`SELECT * FROM flights LIMIT 1;`),
         runMySQL(`
             SELECT s.id, s.flight_id, s.seat_no AS seat_number,
-                   CASE WHEN s.seat_no <= 6 THEN 'BUSINESS' ELSE 'ECONOMY' END AS seat_class,
-                   CASE WHEN s.seat_no <= 6 THEN 12500 ELSE 4500 END AS price_inr,
+                   CASE WHEN s.seat_no <= 12 THEN 'BUSINESS' ELSE 'ECONOMY' END AS seat_class,
+                   CASE
+                       WHEN (s.seat_no % 6 = 1 OR s.seat_no % 6 = 0) THEN 'Window'
+                       WHEN (s.seat_no % 6 = 3 OR s.seat_no % 6 = 4) THEN 'Aisle'
+                       ELSE 'Middle'
+                   END AS seat_type,
+                   CASE
+                       WHEN s.seat_no <= 6 AND (s.seat_no % 6 = 1 OR s.seat_no % 6 = 0) THEN 16500
+                       WHEN s.seat_no <= 6 AND (s.seat_no % 6 = 3 OR s.seat_no % 6 = 4) THEN 14500
+                       WHEN s.seat_no <= 6 THEN 13000
+                       WHEN s.seat_no <= 12 AND (s.seat_no % 6 = 1 OR s.seat_no % 6 = 0) THEN 14500
+                       WHEN s.seat_no <= 12 AND (s.seat_no % 6 = 3 OR s.seat_no % 6 = 4) THEN 13000
+                       WHEN s.seat_no <= 12 THEN 11800
+                       WHEN (s.seat_no % 6 = 1 OR s.seat_no % 6 = 0) THEN 6800
+                       WHEN (s.seat_no % 6 = 3 OR s.seat_no % 6 = 4) THEN 5800
+                       ELSE 4900
+                   END AS price_inr,
                    s.status, s.holder_id AS held_by_user, s.passenger_name,
                    s.hold_expires_at, s.version,
                    CASE
@@ -350,7 +406,7 @@ const server = http.createServer(async (req, res) => {
             const cleanName = sqlEscape(body.passenger_name || 'Guest Passenger');
             const cleanEmail = sqlEscape(body.passenger_email || `${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@endureair.in`);
             const idemKey = `IDEM-S${seatNo}-${Date.now()}`;
-            const amount = seatNo <= 9 ? 1450.00 : 620.00;
+            const amount = getSeatPricing(seatNo).price;
 
             const rows = await runMySQL(`
                 INSERT INTO users (user_name, email, role)
@@ -396,9 +452,10 @@ const server = http.createServer(async (req, res) => {
             await runMySQL(`
                 DELETE FROM bookings WHERE seat_no = ${seatNo};
                 UPDATE seats
-                SET status = 'AVAILABLE', holder_id = NULL, passenger_name = NULL, hold_expires_at = NULL, version = version + 1
+                SET status = 'AVAILABLE', holder_id = NULL, passenger_name = 'AVAILABLE', hold_expires_at = NULL, version = version + 1
                 WHERE flight_id = 1 AND seat_no = ${seatNo};
             `);
+            invalidateCabinCache();
             const fresh = await getFastCabinData(true);
             return sendJson(res, 200, {
                 ok: true,
@@ -785,9 +842,10 @@ const server = http.createServer(async (req, res) => {
                 TRUNCATE TABLE passenger_baggage_tags;
                 SET FOREIGN_KEY_CHECKS = 1;
                 UPDATE seats
-                SET status = 'AVAILABLE', holder_id = NULL, passenger_name = NULL, hold_expires_at = NULL, version = 1
+                SET status = 'AVAILABLE', holder_id = NULL, passenger_name = 'AVAILABLE', hold_expires_at = NULL, version = 1
                 WHERE flight_id = 1;
             `);
+            invalidateCabinCache();
             const fresh = await getFastCabinData(true);
             return sendJson(res, 200, {
                 ok: true,

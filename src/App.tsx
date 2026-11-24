@@ -14,14 +14,34 @@ import { SpotlightCard } from './components/reactbits/SpotlightCard';
 import { NoiseOverlay } from './components/reactbits/NoiseOverlay';
 import { TargetCursor } from './components/reactbits/TargetCursor';
 
-const INITIAL_SEATS: SeatRecord[] = Array.from({ length: 30 }, (_, i) => ({
-  id: i + 1,
-  seat_number: String(i + 1).padStart(2, '0'),
-  seat_class: i < 9 ? 'Business' : 'Economy',
-  price: i < 9 ? 1450 : 620,
-  is_booked: 0,
-  passenger_name: null,
-}));
+const getInitialSeatPricing = (i: number) => {
+  const seatNo = i + 1;
+  const col = ((seatNo - 1) % 6) + 1;
+  const seatType = (col === 1 || col === 6) ? 'Window' : (col === 3 || col === 4) ? 'Aisle' : 'Middle';
+  const seatClass = seatNo <= 12 ? 'Business' : 'Economy';
+  let price = 4900;
+  if (seatNo <= 6) {
+    price = seatType === 'Window' ? 16500 : seatType === 'Aisle' ? 14500 : 13000;
+  } else if (seatNo <= 12) {
+    price = seatType === 'Window' ? 14500 : seatType === 'Aisle' ? 13000 : 11800;
+  } else {
+    price = seatType === 'Window' ? 6800 : seatType === 'Aisle' ? 5800 : 4900;
+  }
+  return { seatClass, seatType, price };
+};
+
+const INITIAL_SEATS: SeatRecord[] = Array.from({ length: 30 }, (_, i) => {
+  const p = getInitialSeatPricing(i);
+  return {
+    id: i + 1,
+    seat_number: String(i + 1).padStart(2, '0'),
+    seat_class: p.seatClass,
+    seat_type: p.seatType,
+    price: p.price,
+    is_booked: 0,
+    passenger_name: null,
+  };
+});
 
 export const App: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);

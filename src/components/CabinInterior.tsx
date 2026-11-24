@@ -8,6 +8,7 @@ export interface SeatRecord {
   id: number;
   seat_number: string;
   seat_class: string;
+  seat_type?: string;
   price: number;
   is_booked: number | boolean;
   passenger_name?: string | null;
