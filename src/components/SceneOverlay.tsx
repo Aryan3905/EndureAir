@@ -12,7 +12,10 @@ export interface BookingRecord {
   passenger_name: string;
   passenger_email?: string;
   seat_class: string;
+  seat_type?: string;
   price: number;
+  meal?: string;
+  baggage?: string;
   booked_at: string;
 }
 
@@ -166,6 +169,8 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
 
     const [passengerName, setPassengerName] = useState('');
     const [passengerEmail, setPassengerEmail] = useState('');
+    const [mealType, setMealType] = useState('Royal Indian Vegetarian Thali');
+    const [baggageTier, setBaggageTier] = useState('CHECKIN_15KG');
     const [bookingStatus, setBookingStatus] = useState<{
       type: 'idle' | 'loading' | 'success' | 'error';
       message: string;
@@ -225,7 +230,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
           body: JSON.stringify({
             seat_number: selectedSeatNumber,
             passenger_name: passengerName.trim(),
-            passenger_email: passengerEmail.trim() || 'guest@endureair.aero',
+            passenger_email: passengerEmail.trim() || `${passengerName.trim().toLowerCase().replace(/[^a-z0-9]/g, '.')}@endureair.in`,
+            meal_type: mealType,
+            baggage_tier: baggageTier,
           }),
         });
         const data = await res.json();
@@ -234,7 +241,7 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
         }
         setBookingStatus({
           type: 'success',
-          message: `Seat #${selectedSeatNumber} reserved in MySQL for ${passengerName.trim()}!`,
+          message: `Seat #${selectedSeatNumber} reserved in MySQL for ${passengerName.trim()} with ${mealType}!`,
         });
         setPassengerName('');
         setPassengerEmail('');
@@ -502,129 +509,373 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
         {activeModal === 'reserve' && (
           <div
             data-lenis-prevent
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-4 backdrop-blur-md modal-backdrop-animate"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#060b13]/85 p-3 md:p-6 backdrop-blur-md modal-backdrop-animate overflow-y-auto"
           >
-            <div className="w-full max-w-4xl rounded-[12px] bg-[#0c1524] border border-[#304766]/55 shadow-2xl p-6 md:p-8 text-[#f8fafc] max-h-[90vh] overflow-y-auto modal-card-animate">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#304766]/40">
+            <div className="w-full max-w-5xl rounded-[14px] bg-[#0c1524] border border-[#304766]/60 shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-5 md:p-7 text-[#f8fafc] max-h-[92vh] overflow-y-auto modal-card-animate">
+              {/* Modal Top Header */}
+              <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#304766]/40">
                 <div>
-                  <div className="text-xs font-mono text-[#d4af37] mb-1 font-medium">
-                    • Live MySQL 8.0 Seat Reservation
+                  <div className="text-xs font-mono text-[#d4af37] mb-1 font-medium flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+                    <span>• NIRVANA CRJ-900 AIRLINER CABIN RESERVATION</span>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-normal tracking-tight text-[#f8fafc]">
+                  <h2 className="text-2xl md:text-3xl font-light tracking-tight text-[#f8fafc]">
                     Select Your Cabin Seat{' '}
-                    <span className="text-[#94a3b8]">(#01–#30)</span>
+                    <span className="text-[#94a3b8] text-xl font-normal">(30 Seats • 5 Rows)</span>
                   </h2>
                 </div>
                 <button
                   onClick={() => setActiveModal('none')}
-                  className="px-3.5 py-1.5 rounded-[4px] bg-[#142338]/80 hover:bg-[#1c324e] border border-[#304766]/60 text-xs font-mono uppercase text-[#cbd5e1] hover:text-white cursor-pointer btn-smooth"
+                  className="px-4 py-2 rounded-[6px] bg-[#142338]/80 hover:bg-[#1c324e] border border-[#304766]/60 text-xs font-mono uppercase text-[#cbd5e1] hover:text-white cursor-pointer btn-smooth"
                 >
                   ✕ Close
                 </button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-7 p-4 rounded-[8px] bg-[#080e18] border border-[#304766]/40">
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[#94a3b8] mb-3">
-                    <span className="text-[#f3e5ab]">FRONT CABIN AISLE ↑</span>
-                    <div className="flex items-center gap-3">
+                {/* =============================================================
+                    LEFT 7 COLS: UNCLUSTERED LUXURY 3D CABIN SEATING PLAN
+                ============================================================= */}
+                <div className="lg:col-span-7 p-4 sm:p-5 rounded-[10px] bg-[#080e18] border border-[#304766]/40">
+                  {/* Cabin Top Flight Deck Direction & Legend */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-[#94a3b8] mb-4 pb-3 border-b border-[#304766]/30">
+                    <div className="flex items-center gap-2 text-[#f3e5ab] font-medium text-[11px]">
+                      <span className="text-[#d4af37]">▲</span> FRONT COCKPIT & FLIGHT DECK
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px]">
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#3b82f6] inline-block" />{' '}
+                        <span className="w-2.5 h-2.5 rounded-[3px] bg-[#385173] inline-block border border-[#60a5fa]/40" />
                         Available
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />{' '}
+                        <span className="w-2.5 h-2.5 rounded-[3px] bg-rose-600 inline-block" />
                         Booked
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#d4af37] inline-block" />{' '}
+                        <span className="w-2.5 h-2.5 rounded-[3px] bg-gradient-to-r from-[#d4af37] to-[#f3e5ab] inline-block shadow-sm shadow-[#d4af37]" />
                         Selected
                       </span>
                     </div>
                   </div>
 
-                  {/* 5 Rows × 6 Seats Across (Left 3 + Right 3) */}
-                  <div className="grid grid-cols-6 gap-2">
-                    {seats.map((s) => {
-                      const num = String(s.seat_number).padStart(2, '0');
-                      const isBooked = Boolean(s.is_booked);
-                      const isSelected = selectedSeatNumber === num;
-                      const isBusiness = Number(s.seat_number) <= 12;
-                      const seatType = s.seat_type || getSeatType(num);
-                      const isWindow = seatType === 'Window';
-                      return (
-                        <button
-                          key={num}
-                          onClick={() => {
-                            onSelectSeat(num);
-                            setBookingStatus({ type: 'idle', message: '' });
-                          }}
-                          className={`p-2 rounded-[5px] border text-left cursor-pointer btn-smooth ${
-                            isSelected
-                              ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] font-bold shadow-md shadow-[#d4af37]/30 scale-[1.02]'
-                              : isBooked
-                              ? 'bg-rose-950/60 border-rose-500/40 text-rose-200 hover:bg-rose-900/60'
-                              : isBusiness
-                              ? 'bg-[#131f30] hover:bg-[#1a2d45] border-[#d4af37]/40 text-[#f3e5ab]'
-                              : 'bg-[#0c1624] hover:bg-[#15253a] border-[#304766]/50 text-[#cbd5e1]'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="font-bold">#{num}</span>
-                            <span className="text-[9px] opacity-90 font-medium">
-                              ₹{s.price.toLocaleString('en-IN')}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-[9px] font-mono truncate opacity-85 mt-0.5">
-                            <span>
-                              {isBooked
-                                ? (s.passenger_name ? s.passenger_name.split(' ')[0] : 'Booked')
-                                : s.seat_class}
-                            </span>
-                            <span className={`text-[8px] font-bold px-1 rounded ${isWindow ? 'bg-[#d4af37]/25 text-[#f3e5ab]' : 'bg-[#1e293b] text-[#94a3b8]'}`}>
-                              {seatType[0]}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
+                  {/* Column Letter Badges above Seating Grid */}
+                  <div className="flex items-center justify-between text-[10px] font-mono font-medium text-[#94a3b8] mb-2 px-1">
+                    <div className="grid grid-cols-3 gap-2 flex-1 text-center">
+                      <span className="text-[#f3e5ab]">A (Win)</span>
+                      <span>B (Mid)</span>
+                      <span className="text-[#93c5fd]">C (Ais)</span>
+                    </div>
+                    <div className="w-10 text-center font-bold text-[#d4af37] text-[9px] tracking-wider">
+                      AISLE
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 flex-1 text-center">
+                      <span className="text-[#93c5fd]">D (Ais)</span>
+                      <span>E (Mid)</span>
+                      <span className="text-[#f3e5ab]">F (Win)</span>
+                    </div>
+                  </div>
+
+                  {/* Cabin Class Header: Executive Business */}
+                  <div className="mb-2 flex items-center justify-between px-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#d4af37] font-semibold flex items-center gap-1.5">
+                      <span>👑</span> Executive Business Suite (Rows 01–02)
+                    </span>
+                    <span className="text-[10px] font-mono text-[#94a3b8]">From ₹13,000</span>
+                  </div>
+
+                  {/* The 5 Cabin Rows with Central Walkway Aisle */}
+                  <div className="space-y-2.5">
+                    {[
+                      { row: 1, label: '01', left: ['01', '02', '03'], right: ['04', '05', '06'] },
+                      { row: 2, label: '02', left: ['07', '08', '09'], right: ['10', '11', '12'] },
+                    ].map((r) => (
+                      <div key={r.label} className="flex items-center gap-2">
+                        {/* Left Bank: A, B, C */}
+                        <div className="grid grid-cols-3 gap-2 flex-1">
+                          {r.left.map((num) => {
+                            const s = seats.find((st) => String(st.seat_number).padStart(2, '0') === num);
+                            if (!s) return null;
+                            const isBooked = Boolean(s.is_booked);
+                            const isSelected = selectedSeatNumber === num;
+                            const seatType = s.seat_type || getSeatType(num);
+                            return (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => {
+                                  onSelectSeat(num);
+                                  setBookingStatus({ type: 'idle', message: '' });
+                                }}
+                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                  isSelected
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    : isBooked
+                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
+                                    : 'bg-[#101b2b] hover:bg-[#16273e] border-[#d4af37]/45 text-[#f3e5ab]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-mono font-bold text-xs">#{num}</span>
+                                  <span
+                                    className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                                      isSelected
+                                        ? 'bg-[#060b13] text-[#d4af37]'
+                                        : seatType === 'Window'
+                                        ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
+                                        : seatType === 'Aisle'
+                                        ? 'bg-sky-500/20 text-sky-200 border border-sky-500/30'
+                                        : 'bg-slate-700/40 text-slate-300'
+                                    }`}
+                                  >
+                                    {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline justify-between w-full mt-1">
+                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                    ₹{s.price.toLocaleString('en-IN')}
+                                  </span>
+                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
+                                    {isBooked ? 'RESV' : 'OPEN'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Central Walkway Aisle Pillar */}
+                        <div className="w-10 flex flex-col items-center justify-center text-center">
+                          <span className="text-[10px] font-mono text-[#64748b] font-bold">R{r.label}</span>
+                          <span className="text-[9px] text-[#334155]">│</span>
+                        </div>
+
+                        {/* Right Bank: D, E, F */}
+                        <div className="grid grid-cols-3 gap-2 flex-1">
+                          {r.right.map((num) => {
+                            const s = seats.find((st) => String(st.seat_number).padStart(2, '0') === num);
+                            if (!s) return null;
+                            const isBooked = Boolean(s.is_booked);
+                            const isSelected = selectedSeatNumber === num;
+                            const seatType = s.seat_type || getSeatType(num);
+                            return (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => {
+                                  onSelectSeat(num);
+                                  setBookingStatus({ type: 'idle', message: '' });
+                                }}
+                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                  isSelected
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    : isBooked
+                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
+                                    : 'bg-[#101b2b] hover:bg-[#16273e] border-[#d4af37]/45 text-[#f3e5ab]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-mono font-bold text-xs">#{num}</span>
+                                  <span
+                                    className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                                      isSelected
+                                        ? 'bg-[#060b13] text-[#d4af37]'
+                                        : seatType === 'Window'
+                                        ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
+                                        : seatType === 'Aisle'
+                                        ? 'bg-sky-500/20 text-sky-200 border border-sky-500/30'
+                                        : 'bg-slate-700/40 text-slate-300'
+                                    }`}
+                                  >
+                                    {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline justify-between w-full mt-1">
+                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                    ₹{s.price.toLocaleString('en-IN')}
+                                  </span>
+                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
+                                    {isBooked ? 'RESV' : 'OPEN'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Cabin Class Divider */}
+                    <div className="py-2 flex items-center gap-3">
+                      <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#304766]/60 to-transparent" />
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#94a3b8] bg-[#0c1524] px-3 py-1 rounded-full border border-[#304766]/50">
+                        ✈️ Main Cabin • Economy Class (Rows 03–05)
+                      </span>
+                      <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#304766]/60 to-transparent" />
+                    </div>
+
+                    {[
+                      { row: 3, label: '03', left: ['13', '14', '15'], right: ['16', '17', '18'] },
+                      { row: 4, label: '04', left: ['19', '20', '21'], right: ['22', '23', '24'] },
+                      { row: 5, label: '05', left: ['25', '26', '27'], right: ['28', '29', '30'] },
+                    ].map((r) => (
+                      <div key={r.label} className="flex items-center gap-2">
+                        {/* Left Bank: A, B, C */}
+                        <div className="grid grid-cols-3 gap-2 flex-1">
+                          {r.left.map((num) => {
+                            const s = seats.find((st) => String(st.seat_number).padStart(2, '0') === num);
+                            if (!s) return null;
+                            const isBooked = Boolean(s.is_booked);
+                            const isSelected = selectedSeatNumber === num;
+                            const seatType = s.seat_type || getSeatType(num);
+                            return (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => {
+                                  onSelectSeat(num);
+                                  setBookingStatus({ type: 'idle', message: '' });
+                                }}
+                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                  isSelected
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    : isBooked
+                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
+                                    : 'bg-[#09121f] hover:bg-[#122033] border-[#304766]/50 text-[#cbd5e1]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-mono font-bold text-xs">#{num}</span>
+                                  <span
+                                    className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                                      isSelected
+                                        ? 'bg-[#060b13] text-[#d4af37]'
+                                        : seatType === 'Window'
+                                        ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
+                                        : seatType === 'Aisle'
+                                        ? 'bg-sky-500/20 text-sky-200 border border-sky-500/30'
+                                        : 'bg-slate-700/40 text-slate-300'
+                                    }`}
+                                  >
+                                    {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline justify-between w-full mt-1">
+                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                    ₹{s.price.toLocaleString('en-IN')}
+                                  </span>
+                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
+                                    {isBooked ? 'RESV' : 'OPEN'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Central Walkway Aisle Pillar */}
+                        <div className="w-10 flex flex-col items-center justify-center text-center">
+                          <span className="text-[10px] font-mono text-[#64748b] font-bold">R{r.label}</span>
+                          <span className="text-[9px] text-[#334155]">│</span>
+                        </div>
+
+                        {/* Right Bank: D, E, F */}
+                        <div className="grid grid-cols-3 gap-2 flex-1">
+                          {r.right.map((num) => {
+                            const s = seats.find((st) => String(st.seat_number).padStart(2, '0') === num);
+                            if (!s) return null;
+                            const isBooked = Boolean(s.is_booked);
+                            const isSelected = selectedSeatNumber === num;
+                            const seatType = s.seat_type || getSeatType(num);
+                            return (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => {
+                                  onSelectSeat(num);
+                                  setBookingStatus({ type: 'idle', message: '' });
+                                }}
+                                className={`relative p-2.5 rounded-[8px] border text-left cursor-pointer btn-smooth flex flex-col justify-between h-[64px] transition-all ${
+                                  isSelected
+                                    ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] text-[#060b13] border-[#f3e5ab] shadow-lg shadow-[#d4af37]/35 ring-2 ring-[#f3e5ab] scale-[1.03]'
+                                    : isBooked
+                                    ? 'bg-rose-950/45 border-rose-500/35 text-rose-200/90 hover:bg-rose-900/50'
+                                    : 'bg-[#09121f] hover:bg-[#122033] border-[#304766]/50 text-[#cbd5e1]'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-mono font-bold text-xs">#{num}</span>
+                                  <span
+                                    className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                                      isSelected
+                                        ? 'bg-[#060b13] text-[#d4af37]'
+                                        : seatType === 'Window'
+                                        ? 'bg-[#d4af37]/25 text-[#f3e5ab] border border-[#d4af37]/40'
+                                        : seatType === 'Aisle'
+                                        ? 'bg-sky-500/20 text-sky-200 border border-sky-500/30'
+                                        : 'bg-slate-700/40 text-slate-300'
+                                    }`}
+                                  >
+                                    {seatType === 'Window' ? 'WIN' : seatType === 'Aisle' ? 'AIS' : 'MID'}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline justify-between w-full mt-1">
+                                  <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#060b13]' : 'text-[#f8fafc]'}`}>
+                                    ₹{s.price.toLocaleString('en-IN')}
+                                  </span>
+                                  <span className={`text-[8px] font-mono tracking-tight uppercase ${isSelected ? 'text-[#060b13] font-bold' : isBooked ? 'text-rose-400 font-semibold' : 'text-[#94a3b8]'}`}>
+                                    {isBooked ? 'RESV' : 'OPEN'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 p-5 rounded-[8px] bg-[#080e18] border border-[#304766]/40 flex flex-col justify-between">
+                {/* =============================================================
+                    RIGHT 5 COLS: PASSENGER MANIFEST, MEAL & BAGGAGE FORM
+                ============================================================= */}
+                <div className="lg:col-span-5 p-5 rounded-[10px] bg-[#080e18] border border-[#304766]/40 flex flex-col justify-between">
                   <div>
-                    <div className="text-xs font-mono text-[#d4af37] mb-3 font-medium">
-                      • Passenger Manifest Entry
+                    <div className="text-xs font-mono text-[#d4af37] mb-3 font-medium flex items-center gap-1.5">
+                      <span>•</span> PASSENGER MANIFEST & ONBOARD SERVICES
                     </div>
 
+                    {/* Selected Seat Overview Pill */}
                     {selectedSeatObj ? (
-                      <div className="mb-4 p-3.5 rounded-[6px] bg-[#0c1524] border border-[#304766]/50">
+                      <div className="mb-4 p-4 rounded-[8px] bg-[#0c1524] border border-[#304766]/50 shadow-md">
                         <div className="text-base font-mono font-medium text-[#f8fafc] flex items-center justify-between">
-                          <span>Seat <span className="text-[#f3e5ab]">#{selectedSeatNumber}</span> — {selectedSeatObj.seat_class}</span>
-                          <span className="px-2 py-0.5 rounded text-[10px] bg-[#d4af37]/20 text-[#f3e5ab] border border-[#d4af37]/40 font-mono font-semibold">
+                          <span>
+                            Seat <strong className="text-[#f3e5ab]">#{selectedSeatNumber}</strong> — {selectedSeatObj.seat_class}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded text-[10px] bg-[#d4af37]/20 text-[#f3e5ab] border border-[#d4af37]/40 font-mono font-semibold">
                             {selectedSeatObj.seat_type || getSeatType(selectedSeatNumber || '1')} Seat
                           </span>
                         </div>
-                        <div className="text-xs font-mono text-[#94a3b8] mt-1.5 flex items-center justify-between">
-                          <span>Fare: <span className="text-[#f8fafc] font-bold text-sm">₹{selectedSeatObj.price.toLocaleString('en-IN')}</span></span>
-                          <span className="text-[10px] text-[#94a3b8]">All Taxes & Charges Incl.</span>
+                        <div className="text-xs font-mono text-[#94a3b8] mt-2 flex items-center justify-between">
+                          <span>Fare: <strong className="text-[#f8fafc] text-sm">₹{selectedSeatObj.price.toLocaleString('en-IN')}</strong></span>
+                          <span className="text-[10px] text-emerald-400">All Taxes & Fuel Surcharge Incl.</span>
                         </div>
-                        <div className="text-xs font-mono mt-1">
+                        <div className="text-xs font-mono mt-1.5">
                           Status:{' '}
                           {selectedSeatObj.is_booked ? (
                             <span className="text-rose-400 font-semibold">
-                              Occupied ({selectedSeatObj.passenger_name})
+                              Reserved ({selectedSeatObj.passenger_name})
                             </span>
                           ) : (
-                            <span className="text-[#f3e5ab] font-semibold">Available</span>
+                            <span className="text-[#f3e5ab] font-semibold">Available for Instant Booking</span>
                           )}
                         </div>
                       </div>
                     ) : null}
 
+                    {/* Booking Form with Name, Email, Meal and Baggage Selection */}
                     <form onSubmit={handleBookSeat} className="space-y-3.5">
                       <div>
-                        <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1">
+                        <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1 font-medium">
                           Passenger Full Name
                         </label>
                         <input
@@ -633,12 +884,12 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           value={passengerName}
                           onChange={(e) => setPassengerName(e.target.value)}
                           placeholder="e.g. Capt. Arjun Mehta"
-                          className="w-full px-4 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
+                          className="w-full px-3.5 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1">
+                        <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1 font-medium">
                           Contact Email
                         </label>
                         <input
@@ -646,9 +897,69 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           value={passengerEmail}
                           onChange={(e) => setPassengerEmail(e.target.value)}
                           placeholder="arjun@endureair.in"
-                          className="w-full px-4 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
+                          className="w-full px-3.5 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/50 text-sm text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono"
                         />
                       </div>
+
+                      {/* IN-FLIGHT MEAL SELECTION */}
+                      <div>
+                        <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1 font-medium flex items-center justify-between">
+                          <span>🍽️ In-Flight Meal Preference</span>
+                          <span className="text-[10px] text-[#f3e5ab] font-normal">Complimentary</span>
+                        </label>
+                        <select
+                          value={mealType}
+                          onChange={(e) => setMealType(e.target.value)}
+                          className="w-full px-3 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/60 text-xs text-[#f8fafc] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono cursor-pointer"
+                        >
+                          <option value="Royal Indian Vegetarian Thali">Royal Indian Vegetarian Thali (Veg)</option>
+                          <option value="Chef Gourmet Plate (Non-Veg)">Chef's Non-Veg Gourmet Delicacy</option>
+                          <option value="Asian Vegan & Fresh Seasonal Fruit">Asian Vegan & Fresh Seasonal Fruit</option>
+                          <option value="Halal Certified Special Meal">Halal Certified Special In-Flight Meal</option>
+                          <option value="Diabetic & Low-Sodium Wellness Meal">Diabetic & Low-Sodium Wellness Meal</option>
+                          <option value="Artisanal Beverage & Snacks Only">Artisanal Beverage & Light Snacks Only</option>
+                        </select>
+                      </div>
+
+                      {/* BAGGAGE ALLOWANCE SELECTION */}
+                      <div>
+                        <label className="block text-[11px] font-mono uppercase text-[#94a3b8] mb-1 font-medium flex items-center justify-between">
+                          <span>🧳 Baggage Allowance & Tag</span>
+                          <span className="text-[10px] text-[#f3e5ab] font-normal">RFID Tracked</span>
+                        </label>
+                        <select
+                          value={baggageTier}
+                          onChange={(e) => setBaggageTier(e.target.value)}
+                          className="w-full px-3 py-2.5 rounded-[6px] bg-[#060b13] border border-[#304766]/60 text-xs text-[#f8fafc] focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/40 input-smooth font-mono cursor-pointer"
+                        >
+                          <option value="CHECKIN_15KG">Standard Check-In (15 kg + 7 kg Cabin) — Included</option>
+                          <option value="CABIN_7KG">Cabin Handbag Only (7 kg) — Light Travel</option>
+                          <option value="PRIORITY_25KG">Priority Baggage (25 kg + 7 kg Cabin) — Included</option>
+                          <option value="EXCESS_32KG">Executive Heavy Baggage (32 kg Allowance) — Included</option>
+                        </select>
+                      </div>
+
+                      {/* Live Summary Receipt Box */}
+                      {selectedSeatObj && (
+                        <div className="p-3 rounded-[6px] bg-[#060b13] border border-[#304766]/40 text-xs font-mono space-y-1">
+                          <div className="flex justify-between text-[#94a3b8]">
+                            <span>Seat Base Fare:</span>
+                            <span className="text-[#f8fafc]">₹{selectedSeatObj.price.toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="flex justify-between text-[#94a3b8]">
+                            <span>Meal & Catering:</span>
+                            <span className="text-[#f3e5ab]">FREE (Included)</span>
+                          </div>
+                          <div className="flex justify-between text-[#94a3b8]">
+                            <span>Baggage Tag:</span>
+                            <span className="text-[#f3e5ab]">FREE (Included)</span>
+                          </div>
+                          <div className="pt-1.5 border-t border-[#304766]/40 flex justify-between font-bold text-sm">
+                            <span className="text-[#f8fafc]">Total Amount:</span>
+                            <span className="text-[#f3e5ab]">₹{selectedSeatObj.price.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      )}
 
                       <button
                         type="submit"
@@ -657,17 +968,17 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                           Boolean(selectedSeatObj.is_booked) ||
                           bookingStatus.type === 'loading'
                         }
-                        className="w-full py-3 rounded-[6px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] disabled:opacity-40 text-xs font-mono font-bold uppercase tracking-widest text-[#060b13] cursor-pointer shadow-lg shadow-[#d4af37]/20 btn-smooth"
+                        className="w-full py-3.5 rounded-[6px] bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#c5a059] disabled:opacity-40 text-xs font-mono font-bold uppercase tracking-widest text-[#060b13] cursor-pointer shadow-lg shadow-[#d4af37]/25 btn-smooth"
                       >
                         {bookingStatus.type === 'loading'
-                          ? 'Booking in MySQL...'
+                          ? 'Confirming in MySQL 8.0...'
                           : 'Confirm Reservation ›'}
                       </button>
                     </form>
 
                     {bookingStatus.message && (
                       <div
-                        className={`mt-3 p-3 rounded-[5px] text-xs font-mono ${
+                        className={`mt-3 p-3 rounded-[6px] text-xs font-mono animate-fadeIn ${
                           bookingStatus.type === 'error'
                             ? 'bg-rose-950/80 border border-rose-500/50 text-rose-200'
                             : bookingStatus.type === 'success'
@@ -680,9 +991,9 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                     )}
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-[#304766]/40 text-[11px] font-mono text-[#94a3b8] flex justify-between">
-                    <span>Available: <strong className="text-[#f3e5ab]">{availableCount}</strong></span>
-                    <span>Booked: <strong className="text-rose-400">{bookedCount}</strong></span>
+                  <div className="mt-5 pt-3.5 border-t border-[#304766]/40 text-[11px] font-mono text-[#94a3b8] flex justify-between">
+                    <span>Available Inventory: <strong className="text-[#f3e5ab]">{availableCount} Seats</strong></span>
+                    <span>Reserved: <strong className="text-rose-400">{bookedCount} Seats</strong></span>
                   </div>
                 </div>
               </div>
@@ -742,8 +1053,14 @@ export const SceneOverlay: React.FC<SceneOverlayProps> = React.memo(
                             ({b.seat_class} • {b.seat_type || getSeatType(b.seat_number)})
                           </span>
                         </div>
-                        <div className="text-xs text-[#94a3b8] mt-1 font-mono">
-                          FLIGHT EA-900 • NIRVANA CABIN • FARE ₹{b.price.toLocaleString('en-IN')}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#94a3b8] mt-1.5 font-mono">
+                          <span>FLIGHT EA-900</span>
+                          <span>•</span>
+                          <span>FARE ₹{b.price.toLocaleString('en-IN')}</span>
+                          <span>•</span>
+                          <span className="text-[#f3e5ab]">🍽️ {b.meal || 'Royal Indian Vegetarian Thali'}</span>
+                          <span>•</span>
+                          <span className="text-[#93c5fd]">🧳 {b.baggage || '15 kg Checked Baggage'}</span>
                         </div>
                       </div>
 

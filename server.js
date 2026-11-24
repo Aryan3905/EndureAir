@@ -115,8 +115,11 @@ async function getFastCabinData(forceRefresh = false) {
                 ORDER BY s.seat_no ASC;
             `),
             runMySQL(`
-                SELECT b.id AS booking_id, b.seat_no, b.passenger_name, b.status AS booking_status, b.created_at AS confirmed_at
+                SELECT b.id AS booking_id, b.seat_no, b.passenger_name, b.status AS booking_status, b.created_at AS confirmed_at,
+                       m.meal_code, bg.baggage_tag_code, bg.weight_kg
                 FROM bookings b
+                LEFT JOIN passenger_meal_choices m ON b.user_id = m.user_id
+                LEFT JOIN passenger_baggage_tags bg ON b.user_id = bg.user_id
                 WHERE b.status = 'CONFIRMED'
                 ORDER BY b.id DESC;
             `)
@@ -130,8 +133,8 @@ async function getFastCabinData(forceRefresh = false) {
             passenger_name: i === 3 ? 'Captain Reynolds' : i === 7 ? 'Elena Rostova' : null
         }));
         rawBookings = [
-            { booking_id: 1, seat_no: 4, passenger_name: 'Captain Reynolds', booking_status: 'CONFIRMED', confirmed_at: new Date().toISOString() },
-            { booking_id: 2, seat_no: 8, passenger_name: 'Elena Rostova', booking_status: 'CONFIRMED', confirmed_at: new Date().toISOString() }
+            { booking_id: 1, seat_no: 4, passenger_name: 'Captain Reynolds', booking_status: 'CONFIRMED', confirmed_at: new Date().toISOString(), meal_code: 'Royal Indian Veg', weight_kg: 15 },
+            { booking_id: 2, seat_no: 8, passenger_name: 'Elena Rostova', booking_status: 'CONFIRMED', confirmed_at: new Date().toISOString(), meal_code: 'Chef Gourmet', weight_kg: 25 }
         ];
     }
 
@@ -158,6 +161,8 @@ async function getFastCabinData(forceRefresh = false) {
             seat_class: p.seatClass,
             seat_type: p.seatType,
             price: p.price,
+            meal: b.meal_code || "Chef's Gourmet Plate",
+            baggage: b.weight_kg ? `${b.weight_kg} kg Checked` : '15 kg Standard',
             booked_at: b.confirmed_at || new Date().toISOString()
         };
     });
@@ -407,6 +412,9 @@ const server = http.createServer(async (req, res) => {
             const cleanEmail = sqlEscape(body.passenger_email || `${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@endureair.in`);
             const idemKey = `IDEM-S${seatNo}-${Date.now()}`;
             const amount = getSeatPricing(seatNo).price;
+            const mealCode = sqlEscape(body.meal_type || 'CHEF_GOURMET');
+            const baggageTag = sqlEscape(body.baggage_tier || 'CHECKIN_15KG');
+            const baggageWeight = body.baggage_tier === 'CABIN_7KG' ? 7 : body.baggage_tier === 'CHECKIN_15KG' ? 15 : body.baggage_tier === 'PRIORITY_25KG' ? 25 : 32;
 
             const rows = await runMySQL(`
                 INSERT INTO users (user_name, email, role)
@@ -426,6 +434,14 @@ const server = http.createServer(async (req, res) => {
                 UPDATE outbox SET status = 'SENT' WHERE idempotency_key = '${idemKey}' AND @out_status = 'HOLD_ACQUIRED';
 
                 CALL sp_atomic_confirm_booking(${seatNo}, @uid, '${cleanName}', @pay_id, '${idemKey}', @out_res);
+
+                INSERT IGNORE INTO passenger_meal_choices (user_id, meal_code)
+                SELECT @uid, '${mealCode}'
+                WHERE @out_res = 'BOOKING_CONFIRMED';
+
+                INSERT IGNORE INTO passenger_baggage_tags (user_id, baggage_tag_code, weight_kg)
+                SELECT @uid, 'TAG-${baggageTag}-S${seatNo}', ${baggageWeight}
+                WHERE @out_res = 'BOOKING_CONFIRMED';
 
                 SELECT @out_status AS hold_status, @out_res AS confirm_status;
             `);
